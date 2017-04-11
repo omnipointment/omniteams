@@ -3,14 +3,20 @@ var LOGIN_REDIRECT_URL = 'https://www.omnipointment.com/login?u=https://omnipoin
 function login(){
 	return new Promise((resolve, reject) => {
 		xdLocalStorage.init({
-			iframeUrl: 'https://www.omnipointment.com/nothingtoseehere.html'
-		});
-		xdLocalStorage.getItem('prometheus_user_omnipointment', uid => {
-			if(uid){
-				resolve(uid);
-			}
-			else{
-				reject('Not logged into Omnipointment.');
+			//iframeUrl: 'https://www.omnipointment.com/nothingtoseehere.html'
+			iframeUrl: 'nothingtoseehere.html',
+			initCallback: () => {
+				xdLocalStorage.getItem('prometheus_user_omnipointment', uid => {
+					if(uid.value){
+						if(uid.value !== '[Object object]'){
+							resolve(uid.value);
+						}
+						reject('Not logged into Omnipointment.');
+					}
+					else{
+						reject('Not logged into Omnipointment.');
+					}
+				});
 			}
 		});
 		//var uid = localStorage.getItem('prometheus_user_omnipointment');
@@ -466,7 +472,7 @@ function removePin(tid, pid){
 function selectTeam(tid){
 	if(tid){
 		if(params.team !== tid){
-			var teamURL = window.location.origin + '/?team=' + tid;
+			var teamURL = window.location.href + '?team=' + tid;
 			window.location = teamURL;
 		}
 		else{
@@ -575,6 +581,8 @@ function changeTeamID(oldID, newID){
 //localStorage.setItem('prometheus_user_omnipointment', TEST_UID);
 
 var UID = null;
+var params = {};
+var TEAM_ID = null;
 
 login().then(uid => {
 	
@@ -583,9 +591,9 @@ login().then(uid => {
 	var prometheus = Prometheus(OmniFirebaseConfig);
 		prometheus.logon(UID);
 
-	var params = getQueryParams(document.location.search);
+	params = getQueryParams(document.location.search);
 	var PROMO_CODE = params.code;
-	var TEAM_ID = params.team;
+	TEAM_ID = params.team;
 
 	var giveFeedback = document.getElementById('give-feedback');
 	giveFeedback.addEventListener('click', e => {
@@ -623,5 +631,6 @@ login().then(uid => {
 	}
 
 }).catch(err => {
-	window.location = LOGIN_REDIRECT_URL;
+	//window.location = LOGIN_REDIRECT_URL;
+	console.error(err);
 });
