@@ -260,6 +260,13 @@ function addMeetingToTeam(tid, mid, meeting){
 	});
 }
 
+function joinTeam(tid, uid){
+	return new Promise((resolve, reject) => {
+		var ref = LabsDB.ref('omniteams/teams/' + tid + '/members/' + uid);
+		ref.set(true).then(resolve).catch(reject);
+	});
+}
+
 function mainHome(){
 	getTeams().then(teams => {
 		var teamContainer = document.getElementById('team-choices-container');
@@ -286,13 +293,12 @@ function mainHome(){
 function renderMembers(holder, members){
 	holder.innerHTML = '';
 	var promises = [];
-	for(var uid in members){
+	members.forEach(uid => {
 		var p = getUser(uid);
 		promises.push(p);
-	}
+	});
 	Promise.all(promises).then(users => {
 		users.forEach(user => {
-
 			var div = document.createElement('div');
 				div.classList.add('member');
 			var pic = document.createElement('div');
@@ -351,6 +357,23 @@ function mainTeam(){
 
 	getTeam(TEAM_ID).then(team => {
 		
+		if(!(UID in team.members)){
+			document.getElementById('page').style.opacity = 0.25;
+			vex.dialog.confirm({
+				message: 'Are you a member of ' + team.name + '?',
+				callback: value => {
+					if(value){
+						joinTeam(TEAM_ID, UID).then(done => {
+							window.location.reload();
+						});
+					}
+					else{
+						window.location = 'https://www.omnipointment.com';
+					}
+				}
+			})
+		}
+
 		fillTextSpans('fill-team', team.name);
 		
 		getRecentMeetings().then(meetings => {
@@ -368,7 +391,12 @@ function mainTeam(){
 	teamRef.on('value', snap => {
 		var team = snap.val();
 		var memCont = document.getElementById('members-container');
-			renderMembers(memCont, team.members);
+			var members = Object.keys(team.members).sort((a, b) => {
+				var ai = team.owner === a ? 1 : 0;
+				var bi = team.owner === b ? 1 : 0;
+				return bi - ai;
+			});
+			renderMembers(memCont, members);
 		var metCont = document.getElementById('meetings-container');
 			renderMeetings(metCont, team.meetings);
 	});
@@ -386,8 +414,8 @@ function mainTeam(){
 
 }
 
-//var TEST_UID = '568eb4e705d347a26a94ecc4';
-var TEST_UID = '57f08231b16ed0a0eb259876';
+var TEST_UID = '568eb4e705d347a26a94ecc4';
+//var TEST_UID = '57f08231b16ed0a0eb259876';
 localStorage.setItem('prometheus_user_omnipointment', TEST_UID);
 
 var UID = login();
@@ -399,7 +427,7 @@ var TEAM_ID = params.team;
 if(PROMO_CODE){
 	console.log(PROMO_CODE);
 }
-else if(TEAM_ID){
+if(TEAM_ID){
 	selectTeam(TEAM_ID);
 }
 else{
