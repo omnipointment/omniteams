@@ -504,7 +504,7 @@ function mainTeam(){
 						});
 					}
 					else{
-						window.location = 'https://www.omnipointment.com';
+						window.location = window.location.origin + window.location.pathname;
 					}
 				}
 			})
