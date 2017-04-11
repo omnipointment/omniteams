@@ -1,5 +1,3 @@
-(function(){
-
 var LOGIN_REDIRECT_URL = 'https://www.omnipointment.com/login?u=https://omnipointment.github.io';
 
 function login(){
@@ -633,5 +631,3 @@ login().then(uid => {
 	//window.location = LOGIN_REDIRECT_URL;
 	console.error(err);
 });
-
-})();
