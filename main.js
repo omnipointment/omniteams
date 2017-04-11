@@ -69,7 +69,7 @@ function getRecentMeetings(){
 		var startDate = Date.now() - 2 * WEEK;
 		var endDate = Date.now();
 		var ref = OmniDB.ref('prometheus/visits/' + UID + '/');
-		var query = ref//ref.orderByChild('meta/datetime/timestamp').startAt(startDate).endAt(endDate);
+		var query = ref.orderByChild('meta/datetime/timestamp').startAt(startDate).endAt(endDate);
 		query.once('value', snap => {
 			var val = snap.val() || {};
 			var nodes = Object.keys(val).map(i => val[i]);
@@ -145,8 +145,10 @@ function renderTeamChoices(holder, teams){
 				var tid = e.target.dataset.tid;
 				selectTeam(tid);
 			});
-			div.appendChild(mDiv);
+			mDiv.classList.add('div--inline');
+			mButton.classList.add('btn', 'btn--inline', 'btn--ghost');
 			div.appendChild(mButton);
+			div.appendChild(mDiv);
 		holder.appendChild(div);
 	});
 }
@@ -285,6 +287,7 @@ function mainHome(){
 					}
 				});
 			});
+			createTeamButton.classList.add('btn', 'btn--block', 'btn--primary');
 			teamContainer.appendChild(teamHolder);
 			teamContainer.appendChild(createTeamButton);
 	});
@@ -326,10 +329,10 @@ function renderMeetings(holder, meetings){
 			holder.appendChild(div);
 	}
 	var createLink = document.createElement('a');
-		a.href = 'https://www.omnipointment.com/meeting/create';
-		a.target = '_blank';
-		a.innerText = 'Organize New Meeting';
-		a.classList.add('btn', 'btn--block', 'btn--ghost');
+		createLink.href = 'https://www.omnipointment.com/meeting/create';
+		createLink.target = '_blank';
+		createLink.innerText = 'Organize New Meeting';
+		createLink.classList.add('btn', 'btn--block', 'btn--primary');
 		holder.appendChild(createLink);
 }
 
@@ -407,7 +410,13 @@ function mainTeam(){
 		}
 	});
 	copyLink.on('success', e => {
-		vex.dialog.alert('Link copied. Now, it share with your teammates!');
+		vex.dialog.prompt({
+			message: 'Link copied. Now, it share with your teammates!',
+			value: window.location.href,
+			callback: value => {
+
+			}
+		});
 	});
 
 	initClosers();
