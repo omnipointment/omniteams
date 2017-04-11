@@ -1,24 +1,35 @@
-var LOGIN_REDIRECT_URL = 'https://www.omnipointment.com/login?u=' + window.location.href;
+//var LOGIN_REDIRECT_URL = 'https://www.omnipointment.com/login?u=' + window.location.href;
+var LOGIN_REDIRECT_URL = 'https://www.omnipointment.com/login';
 
 function login(){
 	return new Promise((resolve, reject) => {
-		xdLocalStorage.init({
-			//iframeUrl: 'https://www.omnipointment.com/nothingtoseehere.html'
-			iframeUrl: 'https://www.omnipointment.com/nothingtoseehere.html',
-			initCallback: () => {
-				xdLocalStorage.getItem('prometheus_user_omnipointment', uid => {
-					if(uid.value){
-						if(uid.value !== '[Object object]'){
-							resolve(uid.value);
-						}
-						reject('Not logged into Omnipointment.');
+
+		function xdLoginCallback(){
+			xdLocalStorage.getItem('prometheus_user_omnipointment', uid => {
+				if(uid.value){
+					if(uid.value !== '[Object object]'){
+						resolve(uid.value);
 					}
-					else{
-						reject('Not logged into Omnipointment.');
-					}
-				});
-			}
-		});
+					reject('Not logged into Omnipointment.');
+				}
+				else{
+					reject('Not logged into Omnipointment.');
+				}
+			});
+		}
+
+		if(xdLocalStorage.wasInit()){
+			xdLoginCallback();
+		}
+		else{
+			xdLocalStorage.init({
+				//iframeUrl: 'https://www.omnipointment.com/nothingtoseehere.html'
+				iframeUrl: 'https://www.omnipointment.com/nothingtoseehere.html',
+				initCallback: () => {
+					xdLoginCallback();
+				}
+			});
+		}
 		//var uid = localStorage.getItem('prometheus_user_omnipointment');
 	});
 }
@@ -579,13 +590,13 @@ function changeTeamID(oldID, newID){
 var UID = null;
 var params = {};
 var TEAM_ID = null;
+var prometheus = null;
 
-login().then(uid => {
-	
+function initApp(uid){
 	UID = uid;
 
-	var prometheus = Prometheus(OmniFirebaseConfig);
-		prometheus.logon(UID);
+	prometheus = Prometheus(OmniFirebaseConfig);
+	prometheus.logon(UID);
 
 	params = getQueryParams(document.location.search);
 	var PROMO_CODE = params.code;
@@ -625,7 +636,23 @@ login().then(uid => {
 	else{
 		mainHome();
 	}
+}
 
-}).catch(err => {
-	window.location = LOGIN_REDIRECT_URL;
+
+var loginWindow = null;
+
+
+login().then(initApp).catch(err => {
+	//console.error(err, 'Polling UID.');
+	loginWindow = window.open(LOGIN_REDIRECT_URL);
+	recursiveLoginCheck();
 });
+
+function recursiveLoginCheck(){
+	login().then(uid => {
+		loginWindow.close();
+		initApp(uid);
+	}).catch(err => {
+		recursiveLoginCheck();
+	});
+}
