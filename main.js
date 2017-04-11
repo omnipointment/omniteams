@@ -1,3 +1,5 @@
+(function(){
+
 var LOGIN_REDIRECT_URL = 'https://www.omnipointment.com/login?u=https://omnipointment.github.io';
 
 function login(){
@@ -53,10 +55,6 @@ function uniqueList(list){
 		}
 	}
 	return arr;
-}
-
-function objectToList(val){
-	return Object.keys(val).map(i => val[i]);
 }
 
 var MINUTE = 60 * 1000;
@@ -576,6 +574,7 @@ function changeTeamID(oldID, newID){
 	});
 }
 
+<<<<<<< HEAD
 //var TEST_UID = '568eb4e705d347a26a94ecc4';
 //var TEST_UID = '57f08231b16ed0a0eb259876';
 //localStorage.setItem('prometheus_user_omnipointment', TEST_UID);
@@ -634,3 +633,5 @@ login().then(uid => {
 	//window.location = LOGIN_REDIRECT_URL;
 	console.error(err);
 });
+
+})();
