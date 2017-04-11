@@ -1,4 +1,4 @@
-var LOGIN_REDIRECT_URL = 'https://www.omnipointment.com/login?u=https://omnipointment.github.io';
+var LOGIN_REDIRECT_URL = 'https://www.omnipointment.com/login?u=' + window.location.href;
 
 function login(){
 	return new Promise((resolve, reject) => {
@@ -627,6 +627,5 @@ login().then(uid => {
 	}
 
 }).catch(err => {
-	//window.location = LOGIN_REDIRECT_URL;
-	console.error(err);
+	window.location = LOGIN_REDIRECT_URL;
 });
