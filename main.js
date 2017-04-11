@@ -358,6 +358,78 @@ function renderMeetings(holder, meetings){
 		holder.appendChild(createLink);
 }
 
+function renderPins(holder, pins){
+	holder.innerHTML = '';
+	var ul = document.createElement('ul');
+	for(var pid in pins){
+		var pin = pins[pid];
+		var div = document.createElement('li');
+			if(pin.url){
+				var a = document.createElement('a');
+					a.href = pin.url;
+					a.target = '_blank';
+					a.innerText = pin.text;
+					div.appendChild(a);
+			}
+			else{
+				div.innerText = pin.text;
+			}
+			ul.appendChild(div);
+	}
+	holder.appendChild(ul);
+	/*var input = document.createElement('input');
+		input.type = 'text';
+		input.placeholder = 'Pin New Item: goals, links, updates...';
+		input.addEventListener('keypress', e => {
+			if(e.keyCode === 13){
+				e.preventDefault();
+				var pin = e.target.value;
+				addPin(TEAM_ID, pin);
+			}
+		});
+		holder.appendChild(input);*/
+	var button = document.createElement('button');
+		button.innerText = 'Add Pinned Item';
+		button.classList.add('btn', 'btn--block', 'btn--ghost');
+		button.addEventListener('click', e => {
+			vex.dialog.prompt({
+				message: 'What would you like to pin?',
+				placeholder: 'Try a URL or new team goal.',
+				callback: value => {
+					if(value.indexOf('http') > -1){
+						vex.dialog.prompt({
+							message: 'Link Title',
+							callback: linkTitle => {
+								if(linkTitle){
+									addPin(TEAM_ID, {
+										text: linkTitle,
+										url: value
+									});
+								}
+								else{
+									addPin(TEAM_ID, {
+										text: value
+									});
+								}
+							}
+						})
+					}
+					else{
+						addPin(TEAM_ID, {
+							text: value
+						});
+					}
+				}
+			});
+		});
+		holder.appendChild(button);
+}
+
+function addPin(tid, pin){
+	var ref = LabsDB.ref('omniteams/teams/' + tid + '/pins');
+		ref.push(pin);
+}
+
 function selectTeam(tid){
 	if(tid){
 		if(params.team !== tid){
@@ -415,6 +487,8 @@ function mainTeam(){
 	var teamRef = LabsDB.ref('omniteams/teams/' + TEAM_ID);
 	teamRef.on('value', snap => {
 		var team = snap.val();
+		var pinCont = document.getElementById('pins-container');
+			renderPins(pinCont, team.pins);
 		var memCont = document.getElementById('members-container');
 			var members = Object.keys(team.members).sort((a, b) => {
 				var ai = team.owner === a ? 1 : 0;
