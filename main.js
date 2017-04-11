@@ -1,11 +1,20 @@
 var LOGIN_REDIRECT_URL = 'https://www.omnipointment.com/login?u=https://omnipointment.github.io';
 
 function login(){
-	var uid = localStorage.getItem('prometheus_user_omnipointment');
-	if(!uid){
-		window.location = LOGIN_REDIRECT_URL;
-	}
-	return uid;
+	return new Promise((resolve, reject) => {
+		xdLocalStorage.init({
+			iframeUrl: 'https://www.omnipointment.com/nothingtoseehere.html'
+		});
+		xdLocalStorage.getItem('prometheus_user_omnipointment', uid => {
+			if(uid){
+				resolve(uid);
+			}
+			else{
+				reject('Not logged into Omnipointment.');
+			}
+		});
+		//var uid = localStorage.getItem('prometheus_user_omnipointment');
+	});
 }
 
 var OmniFirebaseConfig = {
@@ -562,49 +571,57 @@ function changeTeamID(oldID, newID){
 }
 
 //var TEST_UID = '568eb4e705d347a26a94ecc4';
-var TEST_UID = '57f08231b16ed0a0eb259876';
-localStorage.setItem('prometheus_user_omnipointment', TEST_UID);
+//var TEST_UID = '57f08231b16ed0a0eb259876';
+//localStorage.setItem('prometheus_user_omnipointment', TEST_UID);
 
-var UID = login();
+var UID = null;
 
-var prometheus = Prometheus(OmniFirebaseConfig);
-	prometheus.logon(UID);
+login().then(uid => {
+	
+	UID = uid;
 
-var params = getQueryParams(document.location.search);
-var PROMO_CODE = params.code;
-var TEAM_ID = params.team;
+	var prometheus = Prometheus(OmniFirebaseConfig);
+		prometheus.logon(UID);
 
-var giveFeedback = document.getElementById('give-feedback');
-giveFeedback.addEventListener('click', e => {
-	vex.dialog.prompt({
-		message: 'Share your feedback here.',
-		placeholder: 'Your feedback.',
-		callback: value => {
-			prometheus.save({
-				type: 'TEAM_PAGES_FEEDBACK',
-				feedback: value
-			});
-		}
-	});
-});
+	var params = getQueryParams(document.location.search);
+	var PROMO_CODE = params.code;
+	var TEAM_ID = params.team;
 
-if(PROMO_CODE){
-	prometheus.redeem(PROMO_CODE, success => {
-		var html = ''
-			html += '<h2>' + success.title + '</h2>'
-			html += '<p>' + success.description + '</p>'
-		vex.dialog.alert({
-			unsafeMessage: html
+	var giveFeedback = document.getElementById('give-feedback');
+	giveFeedback.addEventListener('click', e => {
+		vex.dialog.prompt({
+			message: 'Share your feedback here.',
+			placeholder: 'Your feedback.',
+			callback: value => {
+				prometheus.save({
+					type: 'TEAM_PAGES_FEEDBACK',
+					feedback: value
+				});
+			}
 		});
-	}, failure => {
-		vex.dialog.alert(failure);
-	}, {
-		silent: true
 	});
-}
-if(TEAM_ID){
-	selectTeam(TEAM_ID);
-}
-else{
-	mainHome();
-}
+
+	if(PROMO_CODE){
+		prometheus.redeem(PROMO_CODE, success => {
+			var html = ''
+				html += '<h2>' + success.title + '</h2>'
+				html += '<p>' + success.description + '</p>'
+			vex.dialog.alert({
+				unsafeMessage: html
+			});
+		}, failure => {
+			vex.dialog.alert(failure);
+		}, {
+			silent: true
+		});
+	}
+	if(TEAM_ID){
+		selectTeam(TEAM_ID);
+	}
+	else{
+		mainHome();
+	}
+
+}).catch(err => {
+	window.location = LOGIN_REDIRECT_URL;
+});
