@@ -348,7 +348,7 @@ function renderMeetings(holder, meetings){
 
 function selectTeam(tid){
 	if(tid){
-		if(!params.team){
+		if(params.team !== tid){
 			var teamURL = window.location.origin + '/?team=' + tid;
 			window.location = teamURL;
 		}
@@ -433,8 +433,26 @@ function mainTeam(){
 
 }
 
-var TEST_UID = '568eb4e705d347a26a94ecc4';
-//var TEST_UID = '57f08231b16ed0a0eb259876';
+function changeTeamID(oldID, newID){
+	var oldRef = LabsDB.ref('omniteams/teams/' + oldID);
+	var newRef = LabsDB.ref('omniteams/teams/' + newID);
+	newRef.once('value', snap => {
+		var val = snap.val();
+		if(!val){
+			oldRef.once('value', teamSnap => {
+				var team = teamSnap.val();
+				newRef.set(team).then(done => {
+					oldRef.remove().then(removed => {
+						selectTeam(newID);
+					});
+				});
+			});
+		}
+	});
+}
+
+//var TEST_UID = '568eb4e705d347a26a94ecc4';
+var TEST_UID = '57f08231b16ed0a0eb259876';
 localStorage.setItem('prometheus_user_omnipointment', TEST_UID);
 
 var UID = login();
