@@ -572,7 +572,6 @@ function changeTeamID(oldID, newID){
 	});
 }
 
-<<<<<<< HEAD
 //var TEST_UID = '568eb4e705d347a26a94ecc4';
 //var TEST_UID = '57f08231b16ed0a0eb259876';
 //localStorage.setItem('prometheus_user_omnipointment', TEST_UID);
