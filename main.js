@@ -276,7 +276,7 @@ function mainHome(){
 	getTeams().then(teams => {
 		var teamContainer = document.getElementById('team-choices-container');
 			teamContainer.style.display = 'block';
-		var teamHolder = document.createElement('div');
+		var teamHolder = document.getElementById('team-choices');
 			renderTeamChoices(teamHolder, teams);
 		var createTeamButton = document.createElement('button');
 			createTeamButton.innerText = 'Create New Team';
@@ -291,8 +291,20 @@ function mainHome(){
 				});
 			});
 			createTeamButton.classList.add('btn', 'btn--block', 'btn--primary');
-			teamContainer.appendChild(teamHolder);
-			teamContainer.appendChild(createTeamButton);
+			teamHolder.appendChild(createTeamButton);
+	});
+
+	getUser(UID).then(user => {
+		var holder = document.getElementById('user-holder');
+		var div = document.createElement('div');
+			div.classList.add('member');
+		var pic = document.createElement('div');
+			pic.style.background = 'url("' + user.picture + '")'
+		var name = document.createElement('div');
+			name.innerText = 'Welcome, ' + user.name + '.';
+			div.appendChild(pic);
+			div.appendChild(name);
+			holder.appendChild(div);
 	});
 }
 
