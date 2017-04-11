@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Omnipointment</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="keywords" content="omnipointment, schedule, availability, team, meet, doodle, when2meet, meeting">
+		<meta name="description" content="Easily find the best time for your team to meet.">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="mobile-web-app-capable" content="yes">
+		<meta property="og:title" content="Omnipointment">
+		<meta property="og:description" content="Easily find the best time for your team to meet.">
+		<meta property="og:image" content="https://www.omnipointment.com/img/logo.png">
+		<meta property="fb:app_id" content="1538554079792604">
+		<link rel="icon" sizes="192x192" href="/favicon.ico">
+		<link rel="image_src" href="img/purple-long-logo.png">
+		<link rel="manifest" href="/manifest.webapp">
+		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+		<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:400,700,900">
+		<link rel="stylesheet" href="/css/main.css">
+		<link rel="stylesheet" href="/css/vendor.css">
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/3.7.5/firebase.js"></script>
+		<script type="text/javascript" src="/js/vex.combined.min.js"></script>
+		<script type="text/javascript">vex.defaultOptions.className = 'vex-theme-os';</script>
+		<link rel="stylesheet" type="text/css" href="/css/vex.css">
+		<link rel="stylesheet" type="text/css" href="/css/vex-theme-os.css">
+		<script type="text/javascript" src="/js/clipboard.js"></script>
+		<script type="text/javascript" src="/js/prometheus.js"></script>
+		<script type="text/javascript" src="xdLocalStorage.min.js"></script>
+		<style type="text/css">
+
+			.container-hidden {
+				display: none;
+			}
+
+			.container-closer {
+				position: absolute;
+				right: 15px;
+			}
+
+			.container-closer:hover {
+				cursor: pointer;
+			}
+
+			.btn--block {
+				margin: 10px auto;
+			}
+
+			.btn--inline {
+				display: inline-block !important;
+				margin: 10px auto;
+				margin-right: 10px;
+			}
+
+			.div--inline {
+				display: inline-block;
+				margin: 10px auto;	
+				margin-right: 10px;
+			}
+
+			.member div:nth-child(1), .member div:nth-child(2) {
+				display: inline-block;
+				vertical-align: top;
+				margin: 10px auto;
+			}
+
+			.member div:nth-child(1) {
+				width: 40px;
+				height: 40px;
+				border-radius: 20px;
+				background-size: 40px 40px !important;
+				background-position: center center;
+			}
+
+			.member div:nth-child(2) {
+				height: 40px;
+				line-height: 40px;
+				margin-left: 15px;
+
+			}
+
+			#user-holder div {
+				text-align: center;
+				margin: 0 auto;
+			}
+
+			#user-holder div:nth-child(1){
+				margin-right: 10px;
+			}
+
+			.pin-remover {
+				color: red;
+				margin-left: 10px;
+			}
+
+			.pin-remover:hover {
+				cursor: pointer;
+			}
+
+		</style>
+	</head>
+	<body class="body body--landing">
+
+		<header class="header header--landing">
+			<div class="row valign u-fullHeight">
+				<div class="col valign__centered">
+					<div class="row valign u-fullHeight">
+						<div class="logo logo--white u-centerBlock" data-hook="logo">
+							<a onclick="window.location = window.location.origin + window.location.pathname;" class="u-fullHeight u-fullWidth u-centerBlock"></a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</header>
+
+		<section id="page" style="padding:0">
+
+			<div id="team-choices-container" class="container-hidden">
+				<div class="container">
+					<h3>Select Team</h3>
+					<div id="user-holder"></div>
+					<div id="team-choices"></div>
+					<p>Or ask your teammates for the link to join!</p>
+				</div>
+				<div class="container">
+					<h3>What is a Team Page?</h3>
+					<p>It's like a home base for your team! Here's what your team page can help you do:</p>
+					<ul>
+						<li>Keep Omnipointment meetings in one place.</li>
+						<li>Pin important links for the whole team.</li>
+						<li>See feedback from your teammates.</li>
+						<li>And more to come soon...</li>
+					</ul>
+					<p>Send us your feedback by <a href="mailto:team@omnipointment.com" target="_blank">email</a>, <a href="https://facebook.com/omnipointment" target="_blank">Facebook</a>, or <a id="give-feedback">here</a>, we'd love to hear it!</p>
+				</div>
+			</div>
+
+			<div id="team-container" class="container-hidden">
+				<h1 class="fill-team"></h1>
+				<p><button class="copy-link btn div--inline btn--ghost">Copy Link</button> This is your team's home base.</p>
+				<div class="container">
+					<h3>Pinned Items</h3>
+					<div id="pins-container"></div>
+				</div>
+				<div class="container">
+					<h3>Meetings</h3>
+					<div id="meetings-container"></div>
+				</div>
+				<div class="container">
+					<h3>Members</h3>
+					<div id="members-container"></div>
+				</div>
+			</div>
+
+			<div id="recent-meetings-container" class="container container-hidden">
+				<span class="container-closer">x</span>
+				<h3>Recent Meetings</h3>
+				<p>Are any of these meetings for <span class="fill-team">this team</span>?</p>
+			</div>
+
+		</section>
+
+		<script type="text/javascript" src="main.js"></script>
+
+	</body>
+</html>

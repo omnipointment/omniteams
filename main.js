@@ -3,11 +3,26 @@
 var LOGIN_REDIRECT_URL = 'https://www.omnipointment.com/login?u=https://omnipointment.github.io';
 
 function login(){
-	var uid = localStorage.getItem('prometheus_user_omnipointment');
-	if(!uid){
-		window.location = LOGIN_REDIRECT_URL;
-	}
-	return uid;
+	return new Promise((resolve, reject) => {
+		xdLocalStorage.init({
+			//iframeUrl: 'https://www.omnipointment.com/nothingtoseehere.html'
+			iframeUrl: 'nothingtoseehere.html',
+			initCallback: () => {
+				xdLocalStorage.getItem('prometheus_user_omnipointment', uid => {
+					if(uid.value){
+						if(uid.value !== '[Object object]'){
+							resolve(uid.value);
+						}
+						reject('Not logged into Omnipointment.');
+					}
+					else{
+						reject('Not logged into Omnipointment.');
+					}
+				});
+			}
+		});
+		//var uid = localStorage.getItem('prometheus_user_omnipointment');
+	});
 }
 
 var OmniFirebaseConfig = {
@@ -455,7 +470,7 @@ function removePin(tid, pid){
 function selectTeam(tid){
 	if(tid){
 		if(params.team !== tid){
-			var teamURL = window.location.origin + '/?team=' + tid;
+			var teamURL = window.location.origin + window.location.pathname + '?team=' + tid;
 			window.location = teamURL;
 		}
 		else{
@@ -487,7 +502,7 @@ function mainTeam(){
 						});
 					}
 					else{
-						window.location = 'https://www.omnipointment.com';
+						window.location = window.location.origin + window.location.pathname;
 					}
 				}
 			})
@@ -559,48 +574,64 @@ function changeTeamID(oldID, newID){
 	});
 }
 
-var UID = login();
+<<<<<<< HEAD
+//var TEST_UID = '568eb4e705d347a26a94ecc4';
+//var TEST_UID = '57f08231b16ed0a0eb259876';
+//localStorage.setItem('prometheus_user_omnipointment', TEST_UID);
 
-var prometheus = Prometheus(OmniFirebaseConfig);
-	prometheus.logon(UID);
+var UID = null;
+var params = {};
+var TEAM_ID = null;
 
-var params = getQueryParams(document.location.search);
-var PROMO_CODE = params.code;
-var TEAM_ID = params.team;
+login().then(uid => {
+	
+	UID = uid;
 
-var giveFeedback = document.getElementById('give-feedback');
-giveFeedback.addEventListener('click', e => {
-	vex.dialog.prompt({
-		message: 'Share your feedback here.',
-		placeholder: 'Your feedback.',
-		callback: value => {
-			prometheus.save({
-				type: 'TEAM_PAGES_FEEDBACK',
-				feedback: value
-			});
-		}
-	});
-});
+	var prometheus = Prometheus(OmniFirebaseConfig);
+		prometheus.logon(UID);
 
-if(PROMO_CODE){
-	prometheus.redeem(PROMO_CODE, success => {
-		var html = ''
-			html += '<h2>' + success.title + '</h2>'
-			html += '<p>' + success.description + '</p>'
-		vex.dialog.alert({
-			unsafeMessage: html
+	params = getQueryParams(document.location.search);
+	var PROMO_CODE = params.code;
+	TEAM_ID = params.team;
+
+	var giveFeedback = document.getElementById('give-feedback');
+	giveFeedback.addEventListener('click', e => {
+		vex.dialog.prompt({
+			message: 'Share your feedback here.',
+			placeholder: 'Your feedback.',
+			callback: value => {
+				prometheus.save({
+					type: 'TEAM_PAGES_FEEDBACK',
+					feedback: value
+				});
+			}
 		});
-	}, failure => {
-		vex.dialog.alert(failure);
-	}, {
-		silent: true
 	});
-}
-if(TEAM_ID){
-	selectTeam(TEAM_ID);
-}
-else{
-	mainHome();
-}
+
+	if(PROMO_CODE){
+		prometheus.redeem(PROMO_CODE, success => {
+			var html = ''
+				html += '<h2>' + success.title + '</h2>'
+				html += '<p>' + success.description + '</p>'
+			vex.dialog.alert({
+				unsafeMessage: html
+			});
+		}, failure => {
+			vex.dialog.alert(failure);
+		}, {
+			silent: true
+		});
+	}
+	if(TEAM_ID){
+		selectTeam(TEAM_ID);
+	}
+	else{
+		mainHome();
+	}
+
+}).catch(err => {
+	//window.location = LOGIN_REDIRECT_URL;
+	console.error(err);
+});
 
 })();
