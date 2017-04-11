@@ -4,7 +4,7 @@ function login(){
 	return new Promise((resolve, reject) => {
 		xdLocalStorage.init({
 			//iframeUrl: 'https://www.omnipointment.com/nothingtoseehere.html'
-			iframeUrl: 'nothingtoseehere.html',
+			iframeUrl: 'https://www.omnipointment.com/nothingtoseehere.html',
 			initCallback: () => {
 				xdLocalStorage.getItem('prometheus_user_omnipointment', uid => {
 					if(uid.value){
