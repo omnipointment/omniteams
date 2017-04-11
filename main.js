@@ -301,6 +301,13 @@ function renderMembers(holder, members){
 		promises.push(p);
 	});
 	Promise.all(promises).then(users => {
+		var p = document.createElement('p');
+			p.innerText = 'Invite other teammates by sending them ';
+		var a = document.createElement('a');
+			a.innerText = 'this link.';
+			a.classList.add('copy-link');
+			p.appendChild(a);
+		holder.appendChild(p);
 		users.forEach(user => {
 			var div = document.createElement('div');
 				div.classList.add('member');
@@ -404,7 +411,7 @@ function mainTeam(){
 			renderMeetings(metCont, team.meetings);
 	});
 
-	var copyLink = new Clipboard('#copy-link', {
+	var copyLink = new Clipboard('.copy-link', {
 		text: trigger => {
 			return window.location.href;
 		}
