@@ -472,7 +472,7 @@ function removePin(tid, pid){
 function selectTeam(tid){
 	if(tid){
 		if(params.team !== tid){
-			var teamURL = window.location.href + '?team=' + tid;
+			var teamURL = window.location.origin + window.location.pathname + '?team=' + tid;
 			window.location = teamURL;
 		}
 		else{
