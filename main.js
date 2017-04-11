@@ -358,9 +358,15 @@ function renderMeetings(holder, meetings){
 		holder.appendChild(createLink);
 }
 
-function renderPins(holder, pins){
+function renderPins(holder, pinMap, team){
 	holder.innerHTML = '';
 	var ul = document.createElement('ul');
+	var pins = pinMap || {};
+	if(Object.keys(pins).length === 0){
+		pins.sample = {
+			text: 'Pin important URLs or team goals for all team members to see.'
+		}
+	}
 	for(var pid in pins){
 		var pin = pins[pid];
 		var div = document.createElement('li');
@@ -372,7 +378,20 @@ function renderPins(holder, pins){
 					div.appendChild(a);
 			}
 			else{
-				div.innerText = pin.text;
+				var s = document.createElement('span');
+				s.innerText = pin.text;
+				div.appendChild(s);
+			}
+			if(UID === team.owner){
+				var rem = document.createElement('span');
+					rem.classList.add('pin-remover');
+					rem.dataset.pid = pid;
+					rem.innerText = 'x';
+					rem.addEventListener('click', e => {
+						var pid = e.target.dataset.pid;
+						removePin(TEAM_ID, pid);
+					});
+				div.appendChild(rem);
 			}
 			ul.appendChild(div);
 	}
@@ -428,6 +447,11 @@ function renderPins(holder, pins){
 function addPin(tid, pin){
 	var ref = LabsDB.ref('omniteams/teams/' + tid + '/pins');
 		ref.push(pin);
+}
+
+function removePin(tid, pid){
+	var ref = LabsDB.ref('omniteams/teams/' + tid + '/pins/' + pid);
+		ref.remove();
 }
 
 function selectTeam(tid){
@@ -488,7 +512,7 @@ function mainTeam(){
 	teamRef.on('value', snap => {
 		var team = snap.val();
 		var pinCont = document.getElementById('pins-container');
-			renderPins(pinCont, team.pins);
+			renderPins(pinCont, team.pins, team);
 		var memCont = document.getElementById('members-container');
 			var members = Object.keys(team.members).sort((a, b) => {
 				var ai = team.owner === a ? 1 : 0;
