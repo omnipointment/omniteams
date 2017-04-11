@@ -105,7 +105,8 @@ function getRecentMeetings(){
 	});
 }
 
-function renderRecentMeetings(holder, meetings, excludeMap){
+function renderRecentMeetings(holder, meetings, exclude){
+	var excludeMap = exclude || {};
 	holder.innerText = '';
 	meetings.forEach(meeting => {
 		if(!(meeting.mid in excludeMap)){
