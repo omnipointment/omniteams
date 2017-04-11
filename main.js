@@ -12,7 +12,9 @@ var OmniFirebaseConfig = {
 	apiKey: 'AIzaSyDzqDG7BigYHeePB5U74VgVWlIRgjEyV3s',
 	authDomain: 'omnipointment.firebaseapp.com',
 	databaseURL: 'https://omnipointment.firebaseio.com',
-	storageBucket: 'project-1919171548079707132.appspot.com'
+	storageBucket: 'project-1919171548079707132.appspot.com',
+	noScreenshots: true,
+	localhost: false
 }
 var OmniFirebase = firebase.initializeApp(OmniFirebaseConfig, 'Omni Firebase');
 var OmniDB = OmniFirebase.database();
@@ -436,12 +438,26 @@ localStorage.setItem('prometheus_user_omnipointment', TEST_UID);
 
 var UID = login();
 
+var prometheus = Prometheus(OmniFirebaseConfig);
+	prometheus.logon(UID);
+
 var params = getQueryParams(document.location.search);
 var PROMO_CODE = params.code;
 var TEAM_ID = params.team;
 
 if(PROMO_CODE){
-	console.log(PROMO_CODE);
+	prometheus.redeem(PROMO_CODE, success => {
+		var html = ''
+			html += '<h2>' + success.title + '</h2>'
+			html += '<p>' + success.description + '</p>'
+		vex.dialog.alert({
+			unsafeMessage: html
+		});
+	}, failure => {
+		vex.dialog.alert(failure);
+	}, {
+		silent: true
+	});
 }
 if(TEAM_ID){
 	selectTeam(TEAM_ID);
