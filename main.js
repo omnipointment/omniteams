@@ -476,6 +476,20 @@ var params = getQueryParams(document.location.search);
 var PROMO_CODE = params.code;
 var TEAM_ID = params.team;
 
+var giveFeedback = document.getElementById('give-feedback');
+giveFeedback.addEventListener('click', e => {
+	vex.dialog.prompt({
+		message: 'Share your feedback here.',
+		placeholder: 'Your feedback.',
+		callback: value => {
+			prometheus.save({
+				type: 'TEAM_PAGES_FEEDBACK',
+				feedback: value
+			});
+		}
+	});
+});
+
 if(PROMO_CODE){
 	prometheus.redeem(PROMO_CODE, success => {
 		var html = ''
