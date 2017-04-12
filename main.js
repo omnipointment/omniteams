@@ -1,39 +1,3 @@
-//var LOGIN_REDIRECT_URL = 'https://www.omnipointment.com/login?u=' + window.location.href;
-var LOGIN_REDIRECT_URL = 'https://www.omnipointment.com/login';
-
-function login(){
-	return new Promise((resolve, reject) => {
-
-		function xdLoginCallback(){
-			xdLocalStorage.getItem('prometheus_user_omnipointment', uid => {
-				if(uid.value){
-					if(uid.value !== '[Object object]'){
-						resolve(uid.value);
-					}
-					reject('Not logged into Omnipointment.');
-				}
-				else{
-					reject('Not logged into Omnipointment.');
-				}
-			});
-		}
-
-		if(xdLocalStorage.wasInit()){
-			xdLoginCallback();
-		}
-		else{
-			xdLocalStorage.init({
-				//iframeUrl: 'https://www.omnipointment.com/nothingtoseehere.html'
-				iframeUrl: 'https://www.omnipointment.com/nothingtoseehere.html',
-				initCallback: () => {
-					xdLoginCallback();
-				}
-			});
-		}
-		//var uid = localStorage.getItem('prometheus_user_omnipointment');
-	});
-}
-
 var OmniFirebaseConfig = {
 	apiKey: 'AIzaSyDzqDG7BigYHeePB5U74VgVWlIRgjEyV3s',
 	authDomain: 'omnipointment.firebaseapp.com',
@@ -418,17 +382,6 @@ function renderPins(holder, pinMap, team){
 			ul.appendChild(div);
 	}
 	holder.appendChild(ul);
-	/*var input = document.createElement('input');
-		input.type = 'text';
-		input.placeholder = 'Pin New Item: goals, links, updates...';
-		input.addEventListener('keypress', e => {
-			if(e.keyCode === 13){
-				e.preventDefault();
-				var pin = e.target.value;
-				addPin(TEAM_ID, pin);
-			}
-		});
-		holder.appendChild(input);*/
 	var button = document.createElement('button');
 		button.innerText = 'Add Pinned Item';
 		button.classList.add('btn', 'btn--block', 'btn--ghost');
@@ -583,14 +536,18 @@ function changeTeamID(oldID, newID){
 	});
 }
 
-//var TEST_UID = '568eb4e705d347a26a94ecc4';
-//var TEST_UID = '57f08231b16ed0a0eb259876';
-//localStorage.setItem('prometheus_user_omnipointment', TEST_UID);
-
 var UID = null;
 var params = {};
 var TEAM_ID = null;
 var prometheus = null;
+
+var authConfig = {
+	localStorageTag: 'prometheus_user_omnipointment',
+	loginRedirectURL: 'https://www.omnipointment.com/login',
+	xdSourceURL: 'https://www.omnipointment.com/nothingtoseehere.html'
+}
+
+wineGlassAuth(authConfig).then(initApp);
 
 function initApp(uid){
 	UID = uid;
@@ -636,23 +593,4 @@ function initApp(uid){
 	else{
 		mainHome();
 	}
-}
-
-
-var loginWindow = null;
-
-
-login().then(initApp).catch(err => {
-	//console.error(err, 'Polling UID.');
-	loginWindow = window.open(LOGIN_REDIRECT_URL);
-	recursiveLoginCheck();
-});
-
-function recursiveLoginCheck(){
-	login().then(uid => {
-		loginWindow.close();
-		initApp(uid);
-	}).catch(err => {
-		recursiveLoginCheck();
-	});
 }
