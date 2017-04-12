@@ -21,80 +21,23 @@
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 		<script src="https://www.gstatic.com/firebasejs/3.7.5/firebase.js"></script>
 		<script type="text/javascript" src="/js/vex.combined.min.js"></script>
-		<script type="text/javascript">vex.defaultOptions.className = 'vex-theme-os';</script>
+		<script type="text/javascript">vex.defaultOptions.className = 'vex-theme-wireframe';</script>
 		<link rel="stylesheet" type="text/css" href="/css/vex.css">
-		<link rel="stylesheet" type="text/css" href="/css/vex-theme-os.css">
+		<link rel="stylesheet" type="text/css" href="/css/vex-theme-wireframe.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+		<link rel="stylesheet" type="text/css" href="/css/team.css">
 		<script type="text/javascript" src="/js/clipboard.js"></script>
 		<script type="text/javascript" src="/js/prometheus.js"></script>
-		<script type="text/javascript" src="xdLocalStorage.min.js"></script>
+		<script type="text/javascript" src="/js/xdLocalStorage.min.js"></script>
+		<script type="text/javascript" src="/js/wineglassauth.js"></script>
 		<style type="text/css">
 
-			.container-hidden {
-				display: none;
+			#page {
+				/*background: url('img/purple-triagmonds.png') !important*/
 			}
 
-			.container-closer {
-				position: absolute;
-				right: 15px;
-			}
-
-			.container-closer:hover {
-				cursor: pointer;
-			}
-
-			.btn--block {
-				margin: 10px auto;
-			}
-
-			.btn--inline {
-				display: inline-block !important;
-				margin: 10px auto;
-				margin-right: 10px;
-			}
-
-			.div--inline {
-				display: inline-block;
-				margin: 10px auto;	
-				margin-right: 10px;
-			}
-
-			.member div:nth-child(1), .member div:nth-child(2) {
-				display: inline-block;
-				vertical-align: top;
-				margin: 10px auto;
-			}
-
-			.member div:nth-child(1) {
-				width: 40px;
-				height: 40px;
-				border-radius: 20px;
-				background-size: 40px 40px !important;
-				background-position: center center;
-			}
-
-			.member div:nth-child(2) {
-				height: 40px;
-				line-height: 40px;
-				margin-left: 15px;
-
-			}
-
-			#user-holder div {
-				text-align: center;
-				margin: 0 auto;
-			}
-
-			#user-holder div:nth-child(1){
-				margin-right: 10px;
-			}
-
-			.pin-remover {
-				color: red;
-				margin-left: 10px;
-			}
-
-			.pin-remover:hover {
-				cursor: pointer;
+			.landingSection--newsroom a {
+				min-height: 0 !important;
 			}
 
 		</style>
@@ -135,32 +78,58 @@
 				</div>
 			</div>
 
-			<div id="team-container" class="container-hidden">
-				<h1 class="fill-team"></h1>
-				<p><button class="copy-link btn div--inline btn--ghost">Copy Link</button> This is your team's home base.</p>
-				<div class="container">
-					<h3>Pinned Items</h3>
-					<div id="pins-container"></div>
-				</div>
-				<div class="container">
-					<h3>Meetings</h3>
-					<div id="meetings-container"></div>
-				</div>
-				<div class="container">
-					<h3>Members</h3>
-					<div id="members-container"></div>
-				</div>
-			</div>
-
 			<div id="recent-meetings-container" class="container container-hidden">
 				<span class="container-closer">x</span>
 				<h3>Recent Meetings</h3>
 				<p>Are any of these meetings for <span class="fill-team">this team</span>?</p>
 			</div>
 
+			<div id="team-container" class="container-hidden">
+				
+				<h1 class="fill-team"></h1>
+				<p><button class="copy-link btn div--inline btn--ghost">Copy Link</button> This is your team's home base.</p>
+				
+				<div class="toggle">
+					<div class="toggle__section link" data-hook="toggle">
+						<div class="toggle__header">
+							<h4 class="u-textLeft" data-hook="header">Pinned Items</h4>
+						</div>
+						<div class="toggle__chevron"></div>
+					</div>
+					<div class="toggle__section toggle__expandable" data-hook="content">
+						<div id="pins-container"></div>
+					</div>
+				</div>
+
+				<div class="toggle">
+					<div class="toggle__section link" data-hook="toggle">
+						<div class="toggle__header">
+							<h4 class="u-textLeft" data-hook="header">Meetings</h4>
+						</div>
+						<div class="toggle__chevron"></div>
+					</div>
+					<div class="toggle__section toggle__expandable" data-hook="content">
+						<div id="meetings-container"></div>
+					</div>
+				</div>
+
+				<div class="toggle">
+					<div class="toggle__section link" data-hook="toggle">
+						<div class="toggle__header">
+							<h4 class="u-textLeft" data-hook="header">Members</h4>
+						</div>
+						<div class="toggle__chevron"></div>
+					</div>
+					<div class="toggle__section toggle__expandable" data-hook="content">
+						<div id="members-container"></div>
+					</div>
+				</div>
+
+			</div>
+
 		</section>
 
-		<script type="text/javascript" src="main.js"></script>
+		<script type="text/javascript" src="team.js"></script>
 
 	</body>
 </html>

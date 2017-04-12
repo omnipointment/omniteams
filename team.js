@@ -1,39 +1,3 @@
-//var LOGIN_REDIRECT_URL = 'https://www.omnipointment.com/login?u=' + window.location.href;
-var LOGIN_REDIRECT_URL = 'https://www.omnipointment.com/login';
-
-function login(){
-	return new Promise((resolve, reject) => {
-
-		function xdLoginCallback(){
-			xdLocalStorage.getItem('prometheus_user_omnipointment', uid => {
-				if(uid.value){
-					if(uid.value !== '[Object object]'){
-						resolve(uid.value);
-					}
-					reject('Not logged into Omnipointment.');
-				}
-				else{
-					reject('Not logged into Omnipointment.');
-				}
-			});
-		}
-
-		if(xdLocalStorage.wasInit()){
-			xdLoginCallback();
-		}
-		else{
-			xdLocalStorage.init({
-				//iframeUrl: 'https://www.omnipointment.com/nothingtoseehere.html'
-				iframeUrl: 'https://www.omnipointment.com/nothingtoseehere.html',
-				initCallback: () => {
-					xdLoginCallback();
-				}
-			});
-		}
-		//var uid = localStorage.getItem('prometheus_user_omnipointment');
-	});
-}
-
 var OmniFirebaseConfig = {
 	apiKey: 'AIzaSyDzqDG7BigYHeePB5U74VgVWlIRgjEyV3s',
 	authDomain: 'omnipointment.firebaseapp.com',
@@ -133,12 +97,20 @@ function renderRecentMeetings(holder, meetings, exclude){
 	meetings.forEach(meeting => {
 		if(!(meeting.mid in excludeMap)){
 			var div = document.createElement('div');
-			var mDiv = document.createElement('div');
+			var mDiv = document.createElement('a');
 				mDiv.innerText = meeting.name;
+				mDiv.classList.add('div--inline');
+				mDiv.href = 'https://www.omnipointment.com/meeting/' + meeting.mid + '?rdr=false';
+				mDiv.target = '_blank';
+			var ic = document.createElement('i');
+				ic.classList.add('fa', 'fa-icon', 'fa-external-link');
+				ic.style.marginLeft = '5px';
+				mDiv.appendChild(ic);
 			var mButton = document.createElement('button');
 				mButton.innerText = 'Yes';
 				mButton.dataset.mid = meeting.mid;
 				mButton.dataset.meeting_name = meeting.name;
+				mButton.classList.add('btn', 'btn--inline', 'btn--ghost');
 				mButton.addEventListener('click', e => {
 					var mid = e.target.dataset.mid;
 					var meeting_name = e.target.dataset.meeting_name;
@@ -148,9 +120,18 @@ function renderRecentMeetings(holder, meetings, exclude){
 						e.target.parentNode.style.display = 'none';
 					});
 				});
-				mDiv.classList.add('div--inline');
-				mButton.classList.add('btn', 'btn--inline', 'btn--ghost');
+			var nButton = document.createElement('button');
+				nButton.innerText = 'No';
+				nButton.dataset.mid = meeting.mid;
+				nButton.classList.add('btn', 'btn--inline', 'btn--ghost');
+				nButton.addEventListener('click', e => {
+					var mid = e.target.dataset.mid;
+					ignoreMidForTeam(TEAM_ID, mid).then(done => {
+						e.target.parentNode.style.display = 'none';
+					});
+				});
 				div.appendChild(mButton);
+				div.appendChild(nButton);
 				div.appendChild(mDiv);
 			holder.appendChild(div);
 		}
@@ -216,6 +197,15 @@ function getTeams(){
 			var teams = Object.keys(val).map(tid => {
 				var team = val[tid];
 					team.tid = tid;
+				if(!team.pins){
+					team.pins = {};
+				}
+				if(!team.meetings){
+					team.meetings = {};
+				}
+				if(!team.ignoremids){
+					team.ignoremids = {};
+				}
 				return team;
 			});
 			resolve(teams);
@@ -229,6 +219,18 @@ function getTeam(tid){
 			var ref = LabsDB.ref('omniteams/teams/' + tid);
 			ref.once('value', snap => {
 				var val = snap.val();
+				if(!snap.exists()){
+					reject('No team exists with this ID.');
+				}
+				if(!val.pins){
+					val.pins = {};
+				}
+				if(!val.meetings){
+					val.meetings = {};
+				}
+				if(!val.ignoremids){
+					val.ignoremids = {};
+				}
 				resolve(val);
 			}).catch(reject);
 		}
@@ -287,6 +289,15 @@ function addMeetingToTeam(tid, mid, meeting){
 	});
 }
 
+function ignoreMidForTeam(tid, mid){
+	return new Promise((resolve, reject) => {
+		var ref = LabsDB.ref('omniteams/teams/' + tid + '/ignoremids/' + mid);
+		ref.set(true).then(res => {
+			resolve(true);
+		}).catch(reject);
+	});
+}
+
 function joinTeam(tid, uid){
 	return new Promise((resolve, reject) => {
 		var ref = LabsDB.ref('omniteams/teams/' + tid + '/members/' + uid);
@@ -312,7 +323,7 @@ function mainHome(){
 					}
 				});
 			});
-			createTeamButton.classList.add('btn', 'btn--block', 'btn--primary');
+			createTeamButton.classList.add('btn', 'btn--center', 'btn--primary');
 			teamHolder.appendChild(createTeamButton);
 	});
 
@@ -330,38 +341,296 @@ function mainHome(){
 	});
 }
 
-function renderMembers(holder, members){
+function getUserTeamNodes(uid, team){
+	return new Promise((resolve, reject) => {
+		var startDate = Date.now() - (12 * WEEK);
+		var endDate = Date.now();
+		var ref = OmniDB.ref('prometheus/visits/' + uid);
+		var query = ref.orderByChild('meta/datetime/timestamp').startAt(startDate).endAt(endDate);
+		query.once('value', snap => {
+			var nodes = snap.val() || {};
+			var forAward = [];
+			for(var v in nodes){
+				var visit = nodes[v].visit;
+				var meta = nodes[v].meta;
+				if(visit.mid){
+					if(visit.mid in team.meetings){
+						forAward.push(nodes[v]);
+					}
+				}
+			}
+			resolve({
+				uid: uid,
+				nodes: forAward
+			});
+		}).catch(reject);
+	});
+}
+
+function Award(config){
+	var award = {
+		title: config.title || 'Untitled Award',
+		description: config.description || 'No Description',
+		icon: config.icon || 'fa-star',
+		candidates: [],
+		nominate: (cand) => {
+			if(!cand.nodes){
+				throw Error('Missing nodes.');
+			}
+			if(!cand.uid){
+				throw Error('Missing uid.');
+			}
+			award.candidates.push(cand);
+		},
+		score: config.score || null,
+		rank: config.rank || null,
+		crown: () => {
+			for(var c = 0; c < award.candidates.length; c++){
+				var cand = award.candidates[c];
+				if(award.score){
+					cand.score = award.score(cand.nodes);
+				}
+			}
+			if(award.rank){
+				return award.candidates.sort(award.rank)[0];
+			}
+			else{
+				return award.candidates[0];
+			}
+		},
+		present: () => {
+			return {
+				title: award.title,
+				description: award.description,
+				icon: award.icon
+			}
+		}
+	}
+	return award;
+}
+
+function getTeamAchievements(team, awards){
+	return new Promise((resolve, reject) => {
+		var promises = [];
+		var uids = Object.keys(team.members);
+		uids.forEach(uid => {
+			var p = getUserTeamNodes(uid, team);
+			promises.push(p);
+		});
+		Promise.all(promises).then(data => {
+			data.forEach(user => {
+				var uid = user.uid;
+				var nodes = user.nodes;
+				awards.forEach(award => {
+					award.nominate(user);
+				});
+			});
+			var res = {};
+			awards.forEach(award => {
+				var winner = award.crown();
+				var prize = award.present();
+				if(!res[winner.uid]){
+					res[winner.uid] = [];
+				}
+				res[winner.uid].push(prize);
+			});
+			resolve(res);
+		}).catch(reject);
+	});
+}
+
+var AWARDS = [];
+
+AWARDS.push(Award({
+	title: 'Fastest Responder',
+	description: 'No one can keep up with your scheduling speed!',
+	icon: 'fa-fighter-jet',
+	score: (nodes) => {
+		var meetings = {};
+		nodes.forEach(node => {
+			var visit = node.visit;
+			var ts = node.meta.datetime.timestamp;
+			if(visit.type === 'EDIT_MEETING'){
+				meetings[visit.mid] = 'CREATOR';
+			}
+			if(visit.type === 'RSVP'){
+				if(!meetings[visit.mid]){
+					meetings[visit.mid] = ts;
+				}
+				else if(meetings[visit.mid] === 'CREATOR'){
+					// Ignore
+				}
+				else if(ts < meetings[visit.mid]){
+					meetings[visit.mid] = ts;
+				}
+			}
+		});
+		for(var m in meetings){
+			if(meetings[m] === 'CREATOR'){
+				meetings[m] = Infinity;
+			}
+		}
+		return {meetings: meetings};
+	},
+	rank: (a, b) => {
+		var ac = 0;
+		var bc = 0;
+		var am = a.score.meetings;
+		var bm = b.score.meetings;
+		var allMids = Object.keys(am);
+		allMids.push.apply(allMids, Object.keys(bm));
+		allMids = uniqueList(allMids);
+		for(var m = 0; m < allMids.length; m++){
+			var mid = allMids[m];
+			var at = am[mid] || Infinity;
+			var bt = bm[mid] || Infinity;
+			if(at < bt){
+				ac++;
+			}
+			else if(bt < at){
+				bc++;
+			}
+			else{
+				ac++;
+				bc++;
+			}
+		}
+		return bc - ac;
+	}
+}));
+
+AWARDS.push(Award({
+	title: 'Most Generous',
+	description: 'You offer the most free time to the team!',
+	icon: 'fa-calendar',
+	score: (nodes) => {
+		var slots = 0;
+		nodes.forEach(node => {
+			var visit = node.visit;
+			var ts = node.meta.datetime.timestamp;
+			if(visit.timerID === 'rsvp'){
+				var delta = visit.free_after - visit.free_before;
+				slots += delta;
+			}
+		});
+		return slots;
+	},
+	rank: (a, b) => {
+		return b.score - a.score;
+	}
+}));
+
+AWARDS.push(Award({
+	title: 'Most Constructive',
+	description: 'You care the most about giving your teammates feedback!',
+	icon: 'fa-comment',
+	score: (nodes) => {
+		var count = 0;
+		nodes.forEach(node => {
+			var visit = node.visit;
+			var ts = node.meta.datetime.timestamp;
+			if(visit.type === 'RATING_POINTS' || visit.type === 'RATING'){
+				count++;
+			}
+		});
+		return count;
+	},
+	rank: (a, b) => {
+		return b.score - a.score;
+	}
+}));
+
+function renderMembers(holder, members, team){
 	holder.innerHTML = '';
 	var promises = [];
 	members.forEach(uid => {
 		var p = getUser(uid);
+			p.uid = uid;
 		promises.push(p);
 	});
 	Promise.all(promises).then(users => {
-		var p = document.createElement('p');
-			p.innerText = 'Invite other teammates by sending them ';
-		var a = document.createElement('a');
-			a.innerText = 'this link.';
-			a.classList.add('copy-link');
-			p.appendChild(a);
-		holder.appendChild(p);
-		users.forEach(user => {
-			var div = document.createElement('div');
-				div.classList.add('member');
-			var pic = document.createElement('div');
-				pic.style.background = 'url("' + user.picture + '")'
-			var name = document.createElement('div');
-				name.innerText = user.name;
-				div.appendChild(pic);
-				div.appendChild(name);
-				holder.appendChild(div);
+		getTeamAchievements(team, AWARDS).then(achievements => {
+			var p = document.createElement('p');
+				p.innerText = 'Invite other teammates by sending them ';
+			var a = document.createElement('a');
+				a.innerText = 'this link.';
+				a.classList.add('copy-link');
+				p.appendChild(a);
+			holder.appendChild(p);
+			users.forEach((user, udx) => {
+				var uid = promises[udx].uid;
+				var div = document.createElement('div');
+					div.classList.add('member');
+				var pic = document.createElement('div');
+					pic.style.background = 'url("' + user.picture + '")'
+				var name = document.createElement('div');
+					name.innerText = user.name;
+					div.appendChild(pic);
+					div.appendChild(name);
+					if(uid in achievements){
+						achievements[uid].forEach(award => {
+							var awdDiv = document.createElement('div');
+								awdDiv.classList.add('award-icon');
+							var awd = document.createElement('i');
+							awd.classList.add('fa', award.icon);
+							var html = '';
+								html += '<h2>' + award.title + '</h2>'
+								html += '<p>Awarded to ' + user.name + '.</p>'
+								html += '<p>' + award.description + '</p>'
+							awd.addEventListener('click', e => {
+								vex.dialog.open({
+									unsafeMessage: html,
+									buttons: [
+										$.extend({}, vex.dialog.buttons.YES, {text: 'Thanks!'})
+									]
+								});
+							});
+							awdDiv.appendChild(awd);
+							div.appendChild(awdDiv);
+						});
+					}
+					holder.appendChild(div);
+			});
 		});
 	});
 }
 
-function renderMeetings(holder, meetings){
+function renderCards(list, cardClass){
+	var holder = document.createElement('div');
+		holder.classList.add('landingSection--newsroom');
+	var row = document.createElement('div');
+		row.classList.add('row', 'row--condensed');
+	list.forEach(item => {
+		var col = document.createElement('div');
+			col.classList.add('col', cardClass);
+		var card = document.createElement('div');
+			card.classList.add('card__headline');
+			card.innerText = item.text;
+			if(item.url){
+				var ic = document.createElement('i');
+					ic.classList.add('fa', 'fa-external-link', 'small');
+					ic.style.marginLeft = '5px';
+				card.appendChild(ic);
+			}
+		if(item.url){
+			var a = document.createElement('a');
+				a.href = item.url;
+				a.target = '_blank';
+				a.appendChild(card);
+				col.appendChild(a);
+		}
+		else{
+			col.appendChild(card);
+		}
+		row.appendChild(col);
+	});
+	holder.appendChild(row);
+	return holder;
+}
+
+function renderMeetings(holder, meetings, team){
 	holder.innerHTML = '';
-	for(var mid in meetings){
+	/*for(var mid in meetings){
 		var meeting = meetings[mid];
 		var div = document.createElement('div');
 		var a = document.createElement('a');
@@ -371,12 +640,21 @@ function renderMeetings(holder, meetings){
 			a.classList.add('btn', 'btn--block', 'btn--ghost');
 			div.appendChild(a);
 			holder.appendChild(div);
-	}
-	var createLink = document.createElement('a');
-		createLink.href = 'https://www.omnipointment.com/meeting/create';
-		createLink.target = '_blank';
+	}*/
+	var mtgList = Object.keys(meetings).map(mid => {
+		return {
+			text: meetings[mid].name,
+			url: 'https://www.omnipointment.com/meeting/' + mid + '?rdr=false'
+		}
+	});
+	var meetingCards = renderCards(mtgList, 'col--onefourth-xs');
+	holder.appendChild(meetingCards);
+	var createLink = document.createElement('button');
+		createLink.addEventListener('click', e => {
+			window.open('https://www.omnipointment.com/meeting/create');
+		})
 		createLink.innerText = 'Organize New Meeting';
-		createLink.classList.add('btn', 'btn--block', 'btn--primary');
+		createLink.classList.add('btn', 'btn--center', 'btn--primary');
 		holder.appendChild(createLink);
 }
 
@@ -418,20 +696,9 @@ function renderPins(holder, pinMap, team){
 			ul.appendChild(div);
 	}
 	holder.appendChild(ul);
-	/*var input = document.createElement('input');
-		input.type = 'text';
-		input.placeholder = 'Pin New Item: goals, links, updates...';
-		input.addEventListener('keypress', e => {
-			if(e.keyCode === 13){
-				e.preventDefault();
-				var pin = e.target.value;
-				addPin(TEAM_ID, pin);
-			}
-		});
-		holder.appendChild(input);*/
 	var button = document.createElement('button');
 		button.innerText = 'Add Pinned Item';
-		button.classList.add('btn', 'btn--block', 'btn--ghost');
+		button.classList.add('btn', 'btn--center', 'btn--primary');
 		button.addEventListener('click', e => {
 			vex.dialog.prompt({
 				message: 'What would you like to pin?',
@@ -502,8 +769,12 @@ function mainTeam(){
 		
 		if(!(UID in team.members)){
 			document.getElementById('page').style.opacity = 0.25;
-			vex.dialog.confirm({
+			vex.dialog.open({
 				message: 'Are you a member of ' + team.name + '?',
+				buttons: [
+					$.extend({}, vex.dialog.buttons.YES, {text: 'Yes, join the team.'}),
+					$.extend({}, vex.dialog.buttons.NO, {text: 'No, get me outta here!'})
+				],
 				callback: value => {
 					if(value){
 						joinTeam(TEAM_ID, UID).then(done => {
@@ -514,20 +785,34 @@ function mainTeam(){
 						window.location = window.location.origin + window.location.pathname;
 					}
 				}
-			})
+			});
 		}
 
 		fillTextSpans('fill-team', team.name);
 		
 		getRecentMeetings().then(meetings => {
-			var rmContainer = document.getElementById('recent-meetings-container');
-				rmContainer.style.display = 'block';
-			var rmHolder = document.createElement('div');
 			var exclude = team.meetings;
-			renderRecentMeetings(rmHolder, meetings, exclude);
-			rmContainer.appendChild(rmHolder);
+			var meetingList = meetings.filter(meeting => {
+				var keep = true;
+				if(meeting.mid in team.meetings){
+					keep = false;
+				}
+				if(meeting.mid in team.ignoremids){
+					keep = false;
+				}
+				return keep;
+			});
+			if(meetingList.length > 0){
+				var rmContainer = document.getElementById('recent-meetings-container');
+					rmContainer.style.display = 'block';
+				var rmHolder = document.createElement('div');
+				renderRecentMeetings(rmHolder, meetingList);
+				rmContainer.appendChild(rmHolder);				
+			}
 		});
 
+	}).catch(err => {
+		window.location = window.location.origin + window.location.pathname;
 	});
 
 	var teamRef = LabsDB.ref('omniteams/teams/' + TEAM_ID);
@@ -541,9 +826,9 @@ function mainTeam(){
 				var bi = team.owner === b ? 1 : 0;
 				return bi - ai;
 			});
-			renderMembers(memCont, members);
+			renderMembers(memCont, members, team);
 		var metCont = document.getElementById('meetings-container');
-			renderMeetings(metCont, team.meetings);
+			renderMeetings(metCont, team.meetings, team);
 	});
 
 	var copyLink = new Clipboard('.copy-link', {
@@ -583,14 +868,18 @@ function changeTeamID(oldID, newID){
 	});
 }
 
-//var TEST_UID = '568eb4e705d347a26a94ecc4';
-//var TEST_UID = '57f08231b16ed0a0eb259876';
-//localStorage.setItem('prometheus_user_omnipointment', TEST_UID);
-
 var UID = null;
 var params = {};
 var TEAM_ID = null;
 var prometheus = null;
+
+var authConfig = {
+	localStorageTag: 'prometheus_user_omnipointment',
+	loginRedirectURL: 'https://www.omnipointment.com/login',
+	xdSourceURL: 'https://www.omnipointment.com/nothingtoseehere.html'
+}
+
+wineGlassAuth(authConfig).then(initApp);
 
 function initApp(uid){
 	UID = uid;
@@ -638,21 +927,8 @@ function initApp(uid){
 	}
 }
 
-
-var loginWindow = null;
-
-
-login().then(initApp).catch(err => {
-	//console.error(err, 'Polling UID.');
-	loginWindow = window.open(LOGIN_REDIRECT_URL);
-	recursiveLoginCheck();
+const els = document.querySelectorAll('.toggle');
+els.forEach(el => {
+	let elToggle = el.querySelector('.toggle__section');
+	elToggle.addEventListener('click', () => el.classList.toggle('is-expanded'));
 });
-
-function recursiveLoginCheck(){
-	login().then(uid => {
-		loginWindow.close();
-		initApp(uid);
-	}).catch(err => {
-		recursiveLoginCheck();
-	});
-}
