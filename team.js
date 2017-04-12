@@ -296,7 +296,7 @@ function mainHome(){
 
 function getUserTeamNodes(uid, team){
 	return new Promise((resolve, reject) => {
-		var startDate = Date.now() - (4 * WEEK);
+		var startDate = Date.now() - (12 * WEEK);
 		var endDate = Date.now();
 		var ref = OmniDB.ref('prometheus/visits/' + uid);
 		var query = ref.orderByChild('meta/datetime/timestamp').startAt(startDate).endAt(endDate);
@@ -397,21 +397,32 @@ var AWARDS = [];
 AWARDS.push(Award({
 	title: 'Fastest Responder',
 	description: 'No one can keep up with your scheduling speed!',
-	icon: 'fa-clock',
+	icon: 'fa-fighter-jet',
 	score: (nodes) => {
 		var meetings = {};
 		nodes.forEach(node => {
 			var visit = node.visit;
 			var ts = node.meta.datetime.timestamp;
+			if(visit.type === 'EDIT_MEETING'){
+				meetings[visit.mid] = 'CREATOR';
+			}
 			if(visit.type === 'RSVP'){
 				if(!meetings[visit.mid]){
 					meetings[visit.mid] = ts;
+				}
+				else if(meetings[visit.mid] === 'CREATOR'){
+					// Ignore
 				}
 				else if(ts < meetings[visit.mid]){
 					meetings[visit.mid] = ts;
 				}
 			}
 		});
+		for(var m in meetings){
+			if(meetings[m] === 'CREATOR'){
+				meetings[m] = Infinity;
+			}
+		}
 		return {meetings: meetings};
 	},
 	rank: (a, b) => {
@@ -441,40 +452,95 @@ AWARDS.push(Award({
 	}
 }));
 
+AWARDS.push(Award({
+	title: 'Most Generous',
+	description: 'You offer the most free time to the team!',
+	icon: 'fa-calendar',
+	score: (nodes) => {
+		var slots = 0;
+		nodes.forEach(node => {
+			var visit = node.visit;
+			var ts = node.meta.datetime.timestamp;
+			if(visit.timerID === 'rsvp'){
+				var delta = visit.free_after - visit.free_before;
+				slots += delta;
+			}
+		});
+		return slots;
+	},
+	rank: (a, b) => {
+		return b.score - a.score;
+	}
+}));
+
+AWARDS.push(Award({
+	title: 'Most Constructive',
+	description: 'You care the most about giving your teammates feedback!',
+	icon: 'fa-comment',
+	score: (nodes) => {
+		var count = 0;
+		nodes.forEach(node => {
+			var visit = node.visit;
+			var ts = node.meta.datetime.timestamp;
+			if(visit.type === 'RATING_POINTS' || visit.type === 'RATING'){
+				count++;
+			}
+		});
+		return count;
+	},
+	rank: (a, b) => {
+		return b.score - a.score;
+	}
+}));
+
 function renderMembers(holder, members, team){
-
-
-	getTeamAchievements(team, AWARDS).then(achievements => {
-		
-		console.log(achievements);
-
-	});
-
-
 	holder.innerHTML = '';
 	var promises = [];
 	members.forEach(uid => {
 		var p = getUser(uid);
+			p.uid = uid;
 		promises.push(p);
 	});
 	Promise.all(promises).then(users => {
-		var p = document.createElement('p');
-			p.innerText = 'Invite other teammates by sending them ';
-		var a = document.createElement('a');
-			a.innerText = 'this link.';
-			a.classList.add('copy-link');
-			p.appendChild(a);
-		holder.appendChild(p);
-		users.forEach(user => {
-			var div = document.createElement('div');
-				div.classList.add('member');
-			var pic = document.createElement('div');
-				pic.style.background = 'url("' + user.picture + '")'
-			var name = document.createElement('div');
-				name.innerText = user.name;
-				div.appendChild(pic);
-				div.appendChild(name);
-				holder.appendChild(div);
+		getTeamAchievements(team, AWARDS).then(achievements => {
+			var p = document.createElement('p');
+				p.innerText = 'Invite other teammates by sending them ';
+			var a = document.createElement('a');
+				a.innerText = 'this link.';
+				a.classList.add('copy-link');
+				p.appendChild(a);
+			holder.appendChild(p);
+			users.forEach((user, udx) => {
+				var uid = promises[udx].uid;
+				var div = document.createElement('div');
+					div.classList.add('member');
+				var pic = document.createElement('div');
+					pic.style.background = 'url("' + user.picture + '")'
+				var name = document.createElement('div');
+					name.innerText = user.name;
+					div.appendChild(pic);
+					div.appendChild(name);
+					if(uid in achievements){
+						achievements[uid].forEach(award => {
+							var awdDiv = document.createElement('div');
+								awdDiv.classList.add('award-icon');
+							var awd = document.createElement('i');
+							awd.classList.add('fa', award.icon);
+							var html = '';
+								html += '<h2>' + award.title + '</h2>'
+								html += '<p>Awarded to ' + user.name + '.</p>'
+								html += '<p>' + award.description + '</p>'
+							awd.addEventListener('click', e => {
+								vex.dialog.alert({
+									unsafeMessage: html
+								});
+							});
+							awdDiv.appendChild(awd);
+							div.appendChild(awdDiv);
+						});
+					}
+					holder.appendChild(div);
+			});
 		});
 	});
 }

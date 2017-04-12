@@ -27,8 +27,8 @@
 	margin-right: 10px;
 }
 
-.member div:nth-child(1), .member div:nth-child(2) {
-	display: inline-block;
+.member div:nth-child(1), .member div:nth-child(2), .member div.award-icon {
+	display: inline-block !important;
 	vertical-align: top;
 	margin: 10px auto;
 }
@@ -45,7 +45,23 @@
 	height: 40px;
 	line-height: 40px;
 	margin-left: 15px;
+}
 
+.member div.award-icon {
+	width: 40px;
+	height: 40px;
+	border-radius: 20px;
+	margin-left: 15px;
+	font-size: 20px;
+	text-align: center;
+	line-height: 40px;
+	color: white;
+	background: #61B4F7;
+}
+
+.member div.award-icon:hover {
+	cursor: pointer;
+	opacity: 0.5
 }
 
 #user-holder div {
