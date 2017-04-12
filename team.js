@@ -276,7 +276,7 @@ function mainHome(){
 					}
 				});
 			});
-			createTeamButton.classList.add('btn', 'btn--block', 'btn--primary');
+			createTeamButton.classList.add('btn', 'btn--center', 'btn--primary');
 			teamHolder.appendChild(createTeamButton);
 	});
 
@@ -531,8 +531,11 @@ function renderMembers(holder, members, team){
 								html += '<p>Awarded to ' + user.name + '.</p>'
 								html += '<p>' + award.description + '</p>'
 							awd.addEventListener('click', e => {
-								vex.dialog.alert({
-									unsafeMessage: html
+								vex.dialog.open({
+									unsafeMessage: html,
+									buttons: [
+										$.extend({}, vex.dialog.buttons.YES, {text: 'Thanks!'})
+									]
 								});
 							});
 							awdDiv.appendChild(awd);
@@ -545,9 +548,42 @@ function renderMembers(holder, members, team){
 	});
 }
 
+function renderCards(list, cardClass){
+	var holder = document.createElement('div');
+		holder.classList.add('landingSection--newsroom');
+	var row = document.createElement('div');
+		row.classList.add('row', 'row--condensed');
+	list.forEach(item => {
+		var col = document.createElement('div');
+			col.classList.add('col', cardClass);
+		var card = document.createElement('div');
+			card.classList.add('card__headline');
+			card.innerText = item.text;
+			if(item.url){
+				var ic = document.createElement('i');
+					ic.classList.add('fa', 'fa-external-link', 'small');
+					ic.style.marginLeft = '5px';
+				card.appendChild(ic);
+			}
+		if(item.url){
+			var a = document.createElement('a');
+				a.href = item.url;
+				a.target = '_blank';
+				a.appendChild(card);
+				col.appendChild(a);
+		}
+		else{
+			col.appendChild(card);
+		}
+		row.appendChild(col);
+	});
+	holder.appendChild(row);
+	return holder;
+}
+
 function renderMeetings(holder, meetings, team){
 	holder.innerHTML = '';
-	for(var mid in meetings){
+	/*for(var mid in meetings){
 		var meeting = meetings[mid];
 		var div = document.createElement('div');
 		var a = document.createElement('a');
@@ -557,12 +593,21 @@ function renderMeetings(holder, meetings, team){
 			a.classList.add('btn', 'btn--block', 'btn--ghost');
 			div.appendChild(a);
 			holder.appendChild(div);
-	}
-	var createLink = document.createElement('a');
-		createLink.href = 'https://www.omnipointment.com/meeting/create';
-		createLink.target = '_blank';
+	}*/
+	var mtgList = Object.keys(meetings).map(mid => {
+		return {
+			text: meetings[mid].name,
+			url: 'https://www.omnipointment.com/meeting/' + mid + '?rdr=false'
+		}
+	});
+	var meetingCards = renderCards(mtgList, 'col--onefourth-xs');
+	holder.appendChild(meetingCards);
+	var createLink = document.createElement('button');
+		createLink.addEventListener('click', e => {
+			window.open('https://www.omnipointment.com/meeting/create');
+		})
 		createLink.innerText = 'Organize New Meeting';
-		createLink.classList.add('btn', 'btn--block', 'btn--primary');
+		createLink.classList.add('btn', 'btn--center', 'btn--primary');
 		holder.appendChild(createLink);
 }
 
@@ -606,7 +651,7 @@ function renderPins(holder, pinMap, team){
 	holder.appendChild(ul);
 	var button = document.createElement('button');
 		button.innerText = 'Add Pinned Item';
-		button.classList.add('btn', 'btn--block', 'btn--ghost');
+		button.classList.add('btn', 'btn--center', 'btn--primary');
 		button.addEventListener('click', e => {
 			vex.dialog.prompt({
 				message: 'What would you like to pin?',
@@ -823,3 +868,9 @@ function initApp(uid){
 		mainHome();
 	}
 }
+
+const els = document.querySelectorAll('.toggle');
+els.forEach(el => {
+	let elToggle = el.querySelector('.toggle__section');
+	elToggle.addEventListener('click', () => el.classList.toggle('is-expanded'));
+});

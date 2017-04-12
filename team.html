@@ -32,7 +32,13 @@
 		<script type="text/javascript" src="/js/wineglassauth.js"></script>
 		<style type="text/css">
 
+			#page {
+				/*background: url('img/purple-triagmonds.png') !important*/
+			}
 
+			.landingSection--newsroom a {
+				min-height: 0 !important;
+			}
 
 		</style>
 	</head>
@@ -73,20 +79,46 @@
 			</div>
 
 			<div id="team-container" class="container-hidden">
+				
 				<h1 class="fill-team"></h1>
 				<p><button class="copy-link btn div--inline btn--ghost">Copy Link</button> This is your team's home base.</p>
-				<div class="container">
-					<h3>Pinned Items</h3>
-					<div id="pins-container"></div>
+				
+				<div class="toggle">
+					<div class="toggle__section link" data-hook="toggle">
+						<div class="toggle__header">
+							<h4 class="u-textLeft" data-hook="header">Pinned Items</h4>
+						</div>
+						<div class="toggle__chevron"></div>
+					</div>
+					<div class="toggle__section toggle__expandable" data-hook="content">
+						<div id="pins-container"></div>
+					</div>
 				</div>
-				<div class="container">
-					<h3>Meetings</h3>
-					<div id="meetings-container"></div>
+
+				<div class="toggle">
+					<div class="toggle__section link" data-hook="toggle">
+						<div class="toggle__header">
+							<h4 class="u-textLeft" data-hook="header">Meetings</h4>
+						</div>
+						<div class="toggle__chevron"></div>
+					</div>
+					<div class="toggle__section toggle__expandable" data-hook="content">
+						<div id="meetings-container"></div>
+					</div>
 				</div>
-				<div class="container">
-					<h3>Members</h3>
-					<div id="members-container"></div>
+
+				<div class="toggle">
+					<div class="toggle__section link" data-hook="toggle">
+						<div class="toggle__header">
+							<h4 class="u-textLeft" data-hook="header">Members</h4>
+						</div>
+						<div class="toggle__chevron"></div>
+					</div>
+					<div class="toggle__section toggle__expandable" data-hook="content">
+						<div id="members-container"></div>
+					</div>
 				</div>
+
 			</div>
 
 			<div id="recent-meetings-container" class="container container-hidden">

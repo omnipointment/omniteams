@@ -27,6 +27,11 @@
 	margin-right: 10px;
 }
 
+.btn--center {
+	display: block;
+	margin: 10px auto;
+}
+
 .member div:nth-child(1), .member div:nth-child(2), .member div.award-icon {
 	display: inline-block !important;
 	vertical-align: top;
