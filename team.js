@@ -677,8 +677,12 @@ function mainTeam(){
 		
 		if(!(UID in team.members)){
 			document.getElementById('page').style.opacity = 0.25;
-			vex.dialog.confirm({
+			vex.dialog.open({
 				message: 'Are you a member of ' + team.name + '?',
+				buttons: [
+					$.extend({}, vex.dialog.buttons.YES, {text: 'Yes, join the team.'}),
+					$.extend({}, vex.dialog.buttons.NO, {text: 'No, get me outta here!'})
+				],
 				callback: value => {
 					if(value){
 						joinTeam(TEAM_ID, UID).then(done => {
@@ -689,7 +693,7 @@ function mainTeam(){
 						window.location = window.location.origin + window.location.pathname;
 					}
 				}
-			})
+			});
 		}
 
 		fillTextSpans('fill-team', team.name);
