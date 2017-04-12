@@ -294,7 +294,163 @@ function mainHome(){
 	});
 }
 
-function renderMembers(holder, members){
+function getUserTeamNodes(uid, team){
+	return new Promise((resolve, reject) => {
+		var startDate = Date.now() - (4 * WEEK);
+		var endDate = Date.now();
+		var ref = OmniDB.ref('prometheus/visits/' + uid);
+		var query = ref.orderByChild('meta/datetime/timestamp').startAt(startDate).endAt(endDate);
+		query.once('value', snap => {
+			var nodes = snap.val() || {};
+			var forAward = [];
+			for(var v in nodes){
+				var visit = nodes[v].visit;
+				var meta = nodes[v].meta;
+				if(visit.mid){
+					if(visit.mid in team.meetings){
+						forAward.push(nodes[v]);
+					}
+				}
+			}
+			resolve({
+				uid: uid,
+				nodes: forAward
+			});
+		}).catch(reject);
+	});
+}
+
+function Award(config){
+	var award = {
+		title: config.title || 'Untitled Award',
+		description: config.description || 'No Description',
+		icon: config.icon || 'fa-star',
+		candidates: [],
+		nominate: (cand) => {
+			if(!cand.nodes){
+				throw Error('Missing nodes.');
+			}
+			if(!cand.uid){
+				throw Error('Missing uid.');
+			}
+			award.candidates.push(cand);
+		},
+		score: config.score || null,
+		rank: config.rank || null,
+		crown: () => {
+			for(var c = 0; c < award.candidates.length; c++){
+				var cand = award.candidates[c];
+				if(award.score){
+					cand.score = award.score(cand.nodes);
+				}
+			}
+			if(award.rank){
+				return award.candidates.sort(award.rank)[0];
+			}
+			else{
+				return award.candidates[0];
+			}
+		},
+		present: () => {
+			return {
+				title: award.title,
+				description: award.description,
+				icon: award.icon
+			}
+		}
+	}
+	return award;
+}
+
+function getTeamAchievements(team, awards){
+	return new Promise((resolve, reject) => {
+		var promises = [];
+		var uids = Object.keys(team.members);
+		uids.forEach(uid => {
+			var p = getUserTeamNodes(uid, team);
+			promises.push(p);
+		});
+		Promise.all(promises).then(data => {
+			data.forEach(user => {
+				var uid = user.uid;
+				var nodes = user.nodes;
+				awards.forEach(award => {
+					award.nominate(user);
+				});
+			});
+			var res = {};
+			awards.forEach(award => {
+				var winner = award.crown();
+				var prize = award.present();
+				if(!res[winner.uid]){
+					res[winner.uid] = [];
+				}
+				res[winner.uid].push(prize);
+			});
+			resolve(res);
+		}).catch(reject);
+	});
+}
+
+var AWARDS = [];
+
+AWARDS.push(Award({
+	title: 'Fastest Responder',
+	description: 'No one can keep up with your scheduling speed!',
+	icon: 'fa-clock',
+	score: (nodes) => {
+		var meetings = {};
+		nodes.forEach(node => {
+			var visit = node.visit;
+			var ts = node.meta.datetime.timestamp;
+			if(visit.type === 'RSVP'){
+				if(!meetings[visit.mid]){
+					meetings[visit.mid] = ts;
+				}
+				else if(ts < meetings[visit.mid]){
+					meetings[visit.mid] = ts;
+				}
+			}
+		});
+		return {meetings: meetings};
+	},
+	rank: (a, b) => {
+		var ac = 0;
+		var bc = 0;
+		var am = a.score.meetings;
+		var bm = b.score.meetings;
+		var allMids = Object.keys(am);
+		allMids.push.apply(allMids, Object.keys(bm));
+		allMids = uniqueList(allMids);
+		for(var m = 0; m < allMids.length; m++){
+			var mid = allMids[m];
+			var at = am[mid] || Infinity;
+			var bt = bm[mid] || Infinity;
+			if(at < bt){
+				ac++;
+			}
+			else if(bt < at){
+				bc++;
+			}
+			else{
+				ac++;
+				bc++;
+			}
+		}
+		return bc - ac;
+	}
+}));
+
+function renderMembers(holder, members, team){
+
+
+	getTeamAchievements(team, AWARDS).then(achievements => {
+		
+		console.log(achievements);
+
+	});
+
+
 	holder.innerHTML = '';
 	var promises = [];
 	members.forEach(uid => {
@@ -323,7 +479,7 @@ function renderMembers(holder, members){
 	});
 }
 
-function renderMeetings(holder, meetings){
+function renderMeetings(holder, meetings, team){
 	holder.innerHTML = '';
 	for(var mid in meetings){
 		var meeting = meetings[mid];
@@ -477,7 +633,10 @@ function mainTeam(){
 				rmContainer.style.display = 'block';
 			var rmHolder = document.createElement('div');
 			var exclude = team.meetings;
-			renderRecentMeetings(rmHolder, meetings, exclude);
+			var meetingList = meetings.filter(mid => {
+				return !(mid in exclude);
+			});
+			renderRecentMeetings(rmHolder, meetingList);
 			rmContainer.appendChild(rmHolder);
 		});
 
@@ -494,9 +653,9 @@ function mainTeam(){
 				var bi = team.owner === b ? 1 : 0;
 				return bi - ai;
 			});
-			renderMembers(memCont, members);
+			renderMembers(memCont, members, team);
 		var metCont = document.getElementById('meetings-container');
-			renderMeetings(metCont, team.meetings);
+			renderMeetings(metCont, team.meetings, team);
 	});
 
 	var copyLink = new Clipboard('.copy-link', {
