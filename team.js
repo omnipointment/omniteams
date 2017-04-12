@@ -97,12 +97,20 @@ function renderRecentMeetings(holder, meetings, exclude){
 	meetings.forEach(meeting => {
 		if(!(meeting.mid in excludeMap)){
 			var div = document.createElement('div');
-			var mDiv = document.createElement('div');
+			var mDiv = document.createElement('a');
 				mDiv.innerText = meeting.name;
+				mDiv.classList.add('div--inline');
+				mDiv.href = 'https://www.omnipointment.com/meeting/' + meeting.mid + '?rdr=false';
+				mDiv.target = '_blank';
+			var ic = document.createElement('i');
+				ic.classList.add('fa', 'fa-icon', 'fa-external-link');
+				ic.style.marginLeft = '5px';
+				mDiv.appendChild(ic);
 			var mButton = document.createElement('button');
 				mButton.innerText = 'Yes';
 				mButton.dataset.mid = meeting.mid;
 				mButton.dataset.meeting_name = meeting.name;
+				mButton.classList.add('btn', 'btn--inline', 'btn--ghost');
 				mButton.addEventListener('click', e => {
 					var mid = e.target.dataset.mid;
 					var meeting_name = e.target.dataset.meeting_name;
@@ -112,9 +120,18 @@ function renderRecentMeetings(holder, meetings, exclude){
 						e.target.parentNode.style.display = 'none';
 					});
 				});
-				mDiv.classList.add('div--inline');
-				mButton.classList.add('btn', 'btn--inline', 'btn--ghost');
+			var nButton = document.createElement('button');
+				nButton.innerText = 'No';
+				nButton.dataset.mid = meeting.mid;
+				nButton.classList.add('btn', 'btn--inline', 'btn--ghost');
+				nButton.addEventListener('click', e => {
+					var mid = e.target.dataset.mid;
+					ignoreMidForTeam(TEAM_ID, mid).then(done => {
+						e.target.parentNode.style.display = 'none';
+					});
+				});
 				div.appendChild(mButton);
+				div.appendChild(nButton);
 				div.appendChild(mDiv);
 			holder.appendChild(div);
 		}
@@ -180,6 +197,15 @@ function getTeams(){
 			var teams = Object.keys(val).map(tid => {
 				var team = val[tid];
 					team.tid = tid;
+				if(!team.pins){
+					team.pins = {};
+				}
+				if(!team.meetings){
+					team.meetings = {};
+				}
+				if(!team.ignoremids){
+					team.ignoremids = {};
+				}
 				return team;
 			});
 			resolve(teams);
@@ -193,6 +219,18 @@ function getTeam(tid){
 			var ref = LabsDB.ref('omniteams/teams/' + tid);
 			ref.once('value', snap => {
 				var val = snap.val();
+				if(!snap.exists()){
+					reject('No team exists with this ID.');
+				}
+				if(!val.pins){
+					val.pins = {};
+				}
+				if(!val.meetings){
+					val.meetings = {};
+				}
+				if(!val.ignoremids){
+					val.ignoremids = {};
+				}
 				resolve(val);
 			}).catch(reject);
 		}
@@ -246,6 +284,15 @@ function addMeetingToTeam(tid, mid, meeting){
 	return new Promise((resolve, reject) => {
 		var ref = LabsDB.ref('omniteams/teams/' + tid + '/meetings/' + mid);
 		ref.set(meetingData).then(res => {
+			resolve(true);
+		}).catch(reject);
+	});
+}
+
+function ignoreMidForTeam(tid, mid){
+	return new Promise((resolve, reject) => {
+		var ref = LabsDB.ref('omniteams/teams/' + tid + '/ignoremids/' + mid);
+		ref.set(true).then(res => {
 			resolve(true);
 		}).catch(reject);
 	});
@@ -744,17 +791,28 @@ function mainTeam(){
 		fillTextSpans('fill-team', team.name);
 		
 		getRecentMeetings().then(meetings => {
-			var rmContainer = document.getElementById('recent-meetings-container');
-				rmContainer.style.display = 'block';
-			var rmHolder = document.createElement('div');
 			var exclude = team.meetings;
-			var meetingList = meetings.filter(mid => {
-				return !(mid in exclude);
+			var meetingList = meetings.filter(meeting => {
+				var keep = true;
+				if(meeting.mid in team.meetings){
+					keep = false;
+				}
+				if(meeting.mid in team.ignoremids){
+					keep = false;
+				}
+				return keep;
 			});
-			renderRecentMeetings(rmHolder, meetingList);
-			rmContainer.appendChild(rmHolder);
+			if(meetingList.length > 0){
+				var rmContainer = document.getElementById('recent-meetings-container');
+					rmContainer.style.display = 'block';
+				var rmHolder = document.createElement('div');
+				renderRecentMeetings(rmHolder, meetingList);
+				rmContainer.appendChild(rmHolder);				
+			}
 		});
 
+	}).catch(err => {
+		window.location = window.location.origin + window.location.pathname;
 	});
 
 	var teamRef = LabsDB.ref('omniteams/teams/' + TEAM_ID);
