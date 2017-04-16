@@ -389,11 +389,19 @@ function Award(config){
 					cand.score = award.score(cand.nodes);
 				}
 			}
-			if(award.rank){
-				return award.candidates.sort(award.rank)[0];
+			award.candidates = award.candidates.filter(cand => {
+				return cand.score;
+			});
+			if(award.candidates.length < 1){
+				return false;
 			}
 			else{
-				return award.candidates[0];
+				if(award.rank){
+					return award.candidates.sort(award.rank)[0];
+				}
+				else{
+					return award.candidates[0];
+				}
 			}
 		},
 		present: () => {
@@ -463,12 +471,16 @@ AWARDS.push(Award({
 				}
 			}
 		});
+		var nominate = false;
 		for(var m in meetings){
 			if(meetings[m] === 'CREATOR'){
 				meetings[m] = Infinity;
 			}
+			else{
+				nominate = true;
+			}
 		}
-		return {meetings: meetings};
+		return nominate ? {meetings: meetings} : false;
 	},
 	rank: (a, b) => {
 		var ac = 0;
@@ -511,7 +523,7 @@ AWARDS.push(Award({
 				slots += delta;
 			}
 		});
-		return slots;
+		return slots > 0 ? slots : false;
 	},
 	rank: (a, b) => {
 		return b.score - a.score;
@@ -531,7 +543,7 @@ AWARDS.push(Award({
 				count++;
 			}
 		});
-		return count;
+		return count > 0 ? count : false;
 	},
 	rank: (a, b) => {
 		return b.score - a.score;
@@ -848,6 +860,19 @@ function mainTeam(){
 
 	initClosers();
 
+}
+
+// Not working: should just add name param to Prometheus
+function getNameFromMID(mid, uid){
+	var url = 'https://www.omnipointment.com/meeting/' + mid + '?rdr=false';
+	var midWin = window.open(url);
+	window.midWin = midWin;
+	var ref = OmniDB.ref('prometheus/visits/' + uid);
+	var query = ref.orderByChild('meta/datetime/timestamp').limitToLast(1);
+	query.once('value', snap => {
+		var val = snap.val();
+		console.log(val);
+	});
 }
 
 function changeTeamID(oldID, newID){
