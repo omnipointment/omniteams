@@ -181,7 +181,8 @@ function createCourseTeam(name, courseCode){
 }
 
 function selectTeam(tid){
-	var teamURL = window.location.origin + window.location.pathname + '?team=' + tid;
+	var pathname = '/team.html';
+	var teamURL = window.location.origin + pathname + '?team=' + tid;
 	window.location = teamURL;
 }
 
@@ -321,16 +322,18 @@ function mainCourse(courseCode){
 					div.appendChild(name);
 					el.appendChild(div);
 			}
-			var button = document.createElement('button');
-				button.innerText = 'Join Team';
-				button.classList.add('btn', 'btn--center', 'btn--primary');
-				button.dataset.tid = team.tid;
-				button.addEventListener('click', e => {
+			var jb = document.createElement('button');
+				jb.innerText = 'Join Team';
+				jb.classList.add('btn', 'btn--center', 'btn--primary');
+				jb.dataset.tid = team.tid;
+				jb.addEventListener('click', e => {
 					var tid = e.target.dataset.tid;
 					//console.log('Join Team: ' + tid);
-					joinTeam(tid, UID);
+					joinTeam(tid, UID).then(done => {
+						selectTeam(tid);
+					});
 				});
-				el.appendChild(button);
+				el.appendChild(jb);
 			return {
 				el: el
 			}
