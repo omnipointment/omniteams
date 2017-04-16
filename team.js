@@ -167,6 +167,20 @@ function fillTextSpans(spanClass, text){
 	}
 }
 
+function FormatTeam(val, tid){
+	val.tid = tid;
+	if(!val.pins){
+		val.pins = {};
+	}
+	if(!val.meetings){
+		val.meetings = {};
+	}
+	if(!val.ignoremids){
+		val.ignoremids = {};
+	}
+	return val;
+}
+
 function createNewTeam(name){
 	return new Promise((resolve, reject) => {
 		if(name){
@@ -178,7 +192,8 @@ function createNewTeam(name){
 				members: members
 			}
 			LabsDB.ref('omniteams/teams').push(team).then(res => {
-				team.tid = res.path['o'][2];
+				var tid = res.path['o'][2];
+				team = FormatTeam(team, tid);
 				resolve(team);
 			}).catch(reject);			
 		}
@@ -196,16 +211,7 @@ function getTeams(){
 			var val = snap.val() || {};
 			var teams = Object.keys(val).map(tid => {
 				var team = val[tid];
-					team.tid = tid;
-				if(!team.pins){
-					team.pins = {};
-				}
-				if(!team.meetings){
-					team.meetings = {};
-				}
-				if(!team.ignoremids){
-					team.ignoremids = {};
-				}
+				team = FormatTeam(team, tid);
 				return team;
 			});
 			resolve(teams);
@@ -222,15 +228,7 @@ function getTeam(tid){
 				if(!snap.exists()){
 					reject('No team exists with this ID.');
 				}
-				if(!val.pins){
-					val.pins = {};
-				}
-				if(!val.meetings){
-					val.meetings = {};
-				}
-				if(!val.ignoremids){
-					val.ignoremids = {};
-				}
+				val = FormatTeam(val, tid);
 				resolve(val);
 			}).catch(reject);
 		}
@@ -628,7 +626,8 @@ function renderCards(list, cardClass){
 	return holder;
 }
 
-function renderMeetings(holder, meetings, team){
+function renderMeetings(holder, inMeetings, team){
+	var meetings = inMeetings || {};
 	holder.innerHTML = '';
 	/*for(var mid in meetings){
 		var meeting = meetings[mid];
@@ -818,6 +817,7 @@ function mainTeam(){
 	var teamRef = LabsDB.ref('omniteams/teams/' + TEAM_ID);
 	teamRef.on('value', snap => {
 		var team = snap.val();
+		team = FormatTeam(team, TEAM_ID);
 		var pinCont = document.getElementById('pins-container');
 			renderPins(pinCont, team.pins, team);
 		var memCont = document.getElementById('members-container');
