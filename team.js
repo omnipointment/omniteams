@@ -868,6 +868,12 @@ function changeTeamID(oldID, newID){
 	});
 }
 
+function displayError(msg){
+	vex.dialog.alert({
+		message: msg
+	});
+}
+
 var UID = null;
 var params = {};
 var TEAM_ID = null;
@@ -879,7 +885,14 @@ var authConfig = {
 	xdSourceURL: 'https://www.omnipointment.com/nothingtoseehere.html'
 }
 
-wineGlassAuth(authConfig).then(initApp);
+wineGlassAuth(authConfig).then(initApp).catch(err => {
+	if(err.type === 'POPUP_BLOCKED'){
+		displayError(err.message);
+	}
+	else{
+		displayError(err);
+	}
+});
 
 function initApp(uid){
 	UID = uid;
