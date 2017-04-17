@@ -743,16 +743,41 @@ function renderMeetings(holder, inMeetings, team){
 	holder.appendChild(meetingCards);
 	var createLink = document.createElement('button');
 		createLink.addEventListener('click', e => {
-			window.open('https://www.omnipointment.com/meeting/create');
+			listenForCreatedMeeting();
+			var cWin = window.open('https://www.omnipointment.com/meeting/create');
 		})
 		createLink.innerText = 'Organize New Meeting';
 		createLink.classList.add('btn', 'btn--center', 'btn--primary');
 		holder.appendChild(createLink);
 }
 
+function listenForCreatedMeeting(){
+	var ref = OmniDB.ref('prometheus/visits/' + UID);
+	var query = ref.orderByChild('meta/datetime/timestamp').startAt(Date.now());
+	var mid = false;
+	var name = false;
+	query.on('child_added', snap => {
+		var val = snap.val();
+		if(val.visit.type === 'EDIT_MEETING'){
+			mid = val.visit.mid;
+			name = parseMeetingName(val.meta.page.title);
+		}
+		if(val.visit.mid && val.visit.mid === mid){
+			name = parseMeetingName(val.meta.page.title);
+			if(name){
+				addMeetingToTeam(TEAM_ID, val.visit.mid, {
+					name: name
+				});
+				query.off();
+			}
+		}
+	});
+}
+
 function renderPins(holder, pinMap, team){
 	holder.innerHTML = '';
-	var ul = document.createElement('ul');
+	var ul = document.createElement('div');
+		ul.classList.add('pin-holder')
 	var pins = pinMap || {};
 	if(Object.keys(pins).length === 0){
 		pins.sample = {
@@ -761,7 +786,7 @@ function renderPins(holder, pinMap, team){
 	}
 	for(var pid in pins){
 		var pin = pins[pid];
-		var div = document.createElement('li');
+		var div = document.createElement('div');
 			if(pin.url){
 				var a = document.createElement('a');
 					a.href = pin.url;
