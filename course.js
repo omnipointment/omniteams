@@ -292,7 +292,7 @@ function mainCourse(courseCode){
 	var ref = LabsDB.ref('omniteams/teams');
 	var query = ref.orderByChild('course').startAt(courseCode).endAt(courseCode);
 	query.on('value', snap => {
-		var nodes = snap.val();
+		var nodes = snap.val() || {};
 		var promises = [];
 		var teams = Object.keys(nodes).map(tid => {
 			var team = FormatTeam(nodes[tid], tid);
