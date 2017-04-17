@@ -584,7 +584,7 @@ function renderMembers(holder, members, team){
 								html += '<h2>' + award.title + '</h2>'
 								html += '<p>Awarded to ' + user.name + '.</p>'
 								html += '<p>' + award.description + '</p>'
-							awd.addEventListener('click', e => {
+							awdDiv.addEventListener('click', e => {
 								vex.dialog.open({
 									unsafeMessage: html,
 									buttons: [
@@ -799,7 +799,7 @@ function renderPins(holder, pinMap, team){
 			callback: firstMeetingFn
 		}
 	}
-	if(Object.keys(team.members).length < 5){
+	if(Object.keys(team.members).length < 2){
 		pinMap.inviteMembers = {
 			text: 'Invite your team members',
 			callback: inviteMembersFn
