@@ -194,6 +194,11 @@ function createNewTeam(name){
 			LabsDB.ref('omniteams/teams').push(team).then(res => {
 				var tid = res.path['o'][2];
 				team = FormatTeam(team, tid);
+				prometheus.save({
+					type: 'CREATE_TEAM',
+					tid: tid,
+					name: name
+				});
 				resolve(team);
 			}).catch(reject);			
 		}
@@ -278,7 +283,13 @@ function getQueryParams(qs) {
 }
 
 function addMeetingToTeam(tid, mid, meeting){
+	prometheus.save({
+		type: 'ADD_MEETING',
+		mid: mid,
+		tid: tid
+	});
 	var meetingData = meeting || {name: false};
+	meetingData.added = Date.now();
 	return new Promise((resolve, reject) => {
 		var ref = LabsDB.ref('omniteams/teams/' + tid + '/meetings/' + mid);
 		ref.set(meetingData).then(res => {
@@ -288,6 +299,11 @@ function addMeetingToTeam(tid, mid, meeting){
 }
 
 function ignoreMidForTeam(tid, mid){
+	prometheus.save({
+		type: 'IGNORE_MEETING',
+		tid: tid,
+		ignore: mid
+	});
 	return new Promise((resolve, reject) => {
 		var ref = LabsDB.ref('omniteams/teams/' + tid + '/ignoremids/' + mid);
 		ref.set(true).then(res => {
@@ -297,6 +313,11 @@ function ignoreMidForTeam(tid, mid){
 }
 
 function joinTeam(tid, uid){
+	prometheus.save({
+		type: 'JOIN_TEAM',
+		tid: tid,
+		uid: uid
+	});
 	return new Promise((resolve, reject) => {
 		var ref = LabsDB.ref('omniteams/teams/' + tid + '/members/' + uid);
 		ref.set(true).then(resolve).catch(reject);
@@ -584,7 +605,13 @@ function renderMembers(holder, members, team){
 								html += '<h2>' + award.title + '</h2>'
 								html += '<p>Awarded to ' + user.name + '.</p>'
 								html += '<p>' + award.description + '</p>'
-							awd.addEventListener('click', e => {
+							awdDiv.addEventListener('click', e => {
+								prometheus.save({
+									type: 'VIEW_AWARD',
+									tid: TEAM_ID,
+									to: uid,
+									award: award.title
+								});
 								vex.dialog.open({
 									unsafeMessage: html,
 									buttons: [
@@ -602,6 +629,7 @@ function renderMembers(holder, members, team){
 			var a = document.createElement('a');
 				a.innerText = 'Invite Members';
 				a.classList.add('copy-link');
+				a.dataset.linksource = 'Members Footer';
 				p.appendChild(a);
 			var pbr = document.createTextNode(' | ');
 				p.appendChild(pbr);
@@ -676,12 +704,22 @@ function editRosterMember(uid, name){
 }
 
 function editDuplicateMember(uid, tid){
+	prometheus.save({
+		type: 'EDIT_DUPLICATE_MEMBER',
+		tid: tid,
+		uid: uid
+	});
 	vex.dialog.alert({
 		message: 'Please email team@omnipointment.com and we will help you handle this duplicate account.'
 	});
 }
 
 function removeUserFromTeam(uid, tid){
+	prometheus.save({
+		type: 'REMOVE_MEMBER',
+		tid: tid,
+		uid: uid
+	});
 	var ref = LabsDB.ref('omniteams/teams/' + tid + '/members/' + uid);
 	ref.remove();
 }
@@ -743,6 +781,11 @@ function renderMeetings(holder, inMeetings, team){
 	holder.appendChild(meetingCards);
 	var createLink = document.createElement('button');
 		createLink.addEventListener('click', e => {
+			prometheus.save({
+				type: 'ORGANIZE_MEETING_BUTTON',
+				tid: TEAM_ID,
+				source: 'Organize Meeting Button'
+			});
 			listenForCreatedMeeting();
 			var cWin = window.open('https://www.omnipointment.com/meeting/create');
 		})
@@ -775,11 +818,21 @@ function listenForCreatedMeeting(){
 }
 
 var firstMeetingFn = e => {
+	prometheus.save({
+		type: 'ORGANIZE_MEETING_BUTTON',
+		tid: TEAM_ID,
+		source: 'First Meeting Pin'
+	});
 	listenForCreatedMeeting();
 	var cWin = window.open('https://www.omnipointment.com/meeting/create');
 }
 
 var inviteMembersFn = e => {
+	prometheus.save({
+		type: 'COPY_TEAM_PAGE_LINK',
+		tid: TEAM_ID,
+		source: 'Invite Members Pin'
+	});
 	vex.dialog.prompt({
 		message: 'Link copied. Now, it share with your teammates!',
 		value: window.location.href,
@@ -793,28 +846,36 @@ function renderPins(holder, pinMap, team){
 	holder.innerHTML = '';
 	var ul = document.createElement('div');
 		ul.classList.add('pin-holder');
-	if(Object.keys(team.meetings).length < 1){
-		pinMap.firstMeeting = {
-			text: 'Schedule your first team meeting',
-			callback: firstMeetingFn
-		}
-	}
-	if(Object.keys(team.members).length < 5){
-		pinMap.inviteMembers = {
-			text: 'Invite your team members',
-			callback: inviteMembersFn
-		}
-	}
 	var pins = pinMap || {};
-	if(Object.keys(pins).length === 0){
-		pins.sample = {
-			text: 'Pin important URLs or team goals for all team members to see.'
-		}
-	}
 	var pinList = Object.keys(pins).map(pid => {
 		pins[pid].pid = pid;
 		return pins[pid];
+	}).filter(pin => {
+		return pin.master ? true : !pin.removed;
 	});
+	if(Object.keys(team.meetings).length < 1){
+		pinList.push({
+			pid: 'firstMeeting',
+			text: 'Schedule your first team meeting',
+			callback: firstMeetingFn,
+			master: true
+		});
+	}
+	if(Object.keys(team.members).length < 2){
+		pinList.push({
+			pid: 'inviteMembers',
+			text: 'Invite your team members',
+			callback: inviteMembersFn,
+			master: true
+		});
+	}
+	if(pinList.length === 0){
+		pinList.push({
+			pid: 'sample',
+			text: 'Pin important URLs or team goals for all team members to see.',
+			master: true
+		});
+	}
 	pinList.forEach(pin => {
 		var pid = pin.pid;
 		var div = document.createElement('div');
@@ -838,7 +899,7 @@ function renderPins(holder, pinMap, team){
 				s.innerText = pin.text;
 				div.appendChild(s);
 			}
-			if(UID === team.owner){
+			if(UID === team.owner && !pin.master){
 				var rem = document.createElement('span');
 					rem.classList.add('pin-remover');
 					rem.dataset.pid = pid;
@@ -890,19 +951,35 @@ function renderPins(holder, pinMap, team){
 }
 
 function addPin(tid, pin){
+	pin.created = Date.now();
 	var ref = LabsDB.ref('omniteams/teams/' + tid + '/pins');
-		ref.push(pin);
+	var newRef = ref.push(pin);
+	prometheus.save({
+		type: 'ADD_PIN',
+		tid: tid,
+		text: pin.text,
+		url: pin.url ? pin.url : false,
+		pid: newRef.key
+	});
 }
 
 function removePin(tid, pid){
-	var ref = LabsDB.ref('omniteams/teams/' + tid + '/pins/' + pid);
-		ref.remove();
+	var ref = LabsDB.ref('omniteams/teams/' + tid + '/pins/' + pid + '/removed');
+		ref.set(Date.now());
+	prometheus.save({
+		type: 'REMOVE_PIN',
+		tid: tid,
+		pid: pid
+	});
 }
 
 function selectTeam(tid){
 	if(tid){
 		if(params.team !== tid){
 			var teamURL = window.location.origin + window.location.pathname + '?team=' + tid;
+			if(params.action){
+				teamURL += '&action=' + params.action;
+			}
 			window.location = teamURL;
 		}
 		else{
@@ -922,6 +999,11 @@ function selectTeam(tid){
 function mainTeam(){
 
 	getTeam(TEAM_ID).then(team => {
+
+		prometheus.save({
+			type: 'TEAM_PAGE',
+			tid: TEAM_ID
+		});
 		
 		if(!(UID in team.members)){
 			document.getElementById('page').style.opacity = 0.25;
@@ -963,7 +1045,20 @@ function mainTeam(){
 					rmContainer.style.display = 'block';
 				var rmHolder = document.createElement('div');
 				renderRecentMeetings(rmHolder, meetingList);
-				rmContainer.appendChild(rmHolder);				
+				rmContainer.appendChild(rmHolder);
+				var igRef = LabsDB.ref('omniteams/teams/' + TEAM_ID + '/ignoremids');
+				igRef.on('value', igSnap => {
+					var igMap = igSnap.val() || {};
+					var alreadyignored = 0;
+					meetingList.forEach(igMtg => {
+						if(igMtg.mid in igMap){
+							alreadyignored++;
+						}
+					});
+					if(alreadyignored >= meetingList.length){
+						rmContainer.style.display = 'none';
+					}
+				});
 			}
 		});
 
@@ -986,6 +1081,47 @@ function mainTeam(){
 			renderMembers(memCont, members, team);
 		var metCont = document.getElementById('meetings-container');
 			renderMeetings(metCont, team.meetings, team);
+		// Feedback Action:
+		if(params.action === 'ratings'){
+			params.action = false;
+			var latestMeetings = Object.keys(team.meetings).map(mid => {
+				var teamData = team.meetings[mid];
+					teamData.mid = mid;
+				return teamData;
+			}).sort((a, b) => {
+				return b.added - a.added;
+			});
+			var latest = latestMeetings[0];
+			if(latest){
+				prometheus.save({
+					type: 'RATING_REFERRAL',
+					tid: TEAM_ID,
+					mid: latest.mid,
+					source: 'Team Page Action Parameter'
+				});
+				var mURL = 'https://www.omnipointment.com/meeting/' + latest.mid + '/ratings';
+				var mWin = window.open(mURL);
+				window.location.search = '?team=' + TEAM_ID;
+			}
+			else{
+				prometheus.save({
+					type: 'RATING_REFERRAL',
+					tid: TEAM_ID,
+					mid: false,
+					source: 'Team Page Action Fallback'
+				});
+				var rateHTML = '';
+				rateHTML += '<h3>Rate Your Team</h3>'
+				rateHTML += '<p>Visit your latest Omnipointment meeting and click the <button class="btn btn--inline btn--primary" style="margin: 0;">Rate Your Team</button> button!</p>'
+				vex.dialog.open({
+					unsafeMessage: rateHTML,
+					buttons: [],
+					callback: value => {
+						window.location.search = '?team=' + TEAM_ID;
+					}
+				});
+			}
+		}
 	});
 
 	var copyLink = new Clipboard('.copy-link', {
@@ -994,6 +1130,11 @@ function mainTeam(){
 		}
 	});
 	copyLink.on('success', e => {
+		prometheus.save({
+			type: 'COPY_TEAM_PAGE_LINK',
+			tid: TEAM_ID,
+			source: e.trigger.dataset.linksource
+		});
 		vex.dialog.prompt({
 			message: 'Link copied. Now, it share with your teammates!',
 			value: window.location.href,
@@ -1082,6 +1223,7 @@ function initApp(uid){
 			callback: value => {
 				prometheus.save({
 					type: 'TEAM_PAGES_FEEDBACK',
+					tid: TEAM_ID,
 					feedback: value
 				});
 			}
