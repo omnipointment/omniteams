@@ -194,6 +194,11 @@ function createNewTeam(name){
 			LabsDB.ref('omniteams/teams').push(team).then(res => {
 				var tid = res.path['o'][2];
 				team = FormatTeam(team, tid);
+				prometheus.save({
+					type: 'CREATE_TEAM',
+					tid: tid,
+					name: name
+				});
 				resolve(team);
 			}).catch(reject);			
 		}
@@ -278,6 +283,11 @@ function getQueryParams(qs) {
 }
 
 function addMeetingToTeam(tid, mid, meeting){
+	prometheus.save({
+		type: 'ADD_MEETING',
+		mid: mid,
+		tid: tid
+	});
 	var meetingData = meeting || {name: false};
 	meetingData.added = Date.now();
 	return new Promise((resolve, reject) => {
@@ -289,6 +299,11 @@ function addMeetingToTeam(tid, mid, meeting){
 }
 
 function ignoreMidForTeam(tid, mid){
+	prometheus.save({
+		type: 'IGNORE_MEETING',
+		tid: tid,
+		ignore: mid
+	});
 	return new Promise((resolve, reject) => {
 		var ref = LabsDB.ref('omniteams/teams/' + tid + '/ignoremids/' + mid);
 		ref.set(true).then(res => {
@@ -298,6 +313,11 @@ function ignoreMidForTeam(tid, mid){
 }
 
 function joinTeam(tid, uid){
+	prometheus.save({
+		type: 'JOIN_TEAM',
+		tid: tid,
+		uid: uid
+	});
 	return new Promise((resolve, reject) => {
 		var ref = LabsDB.ref('omniteams/teams/' + tid + '/members/' + uid);
 		ref.set(true).then(resolve).catch(reject);
@@ -586,6 +606,12 @@ function renderMembers(holder, members, team){
 								html += '<p>Awarded to ' + user.name + '.</p>'
 								html += '<p>' + award.description + '</p>'
 							awdDiv.addEventListener('click', e => {
+								prometheus.save({
+									type: 'VIEW_AWARD',
+									tid: TEAM_ID,
+									to: uid,
+									award: award.title
+								});
 								vex.dialog.open({
 									unsafeMessage: html,
 									buttons: [
@@ -603,6 +629,7 @@ function renderMembers(holder, members, team){
 			var a = document.createElement('a');
 				a.innerText = 'Invite Members';
 				a.classList.add('copy-link');
+				a.dataset.linksource = 'Members Footer';
 				p.appendChild(a);
 			var pbr = document.createTextNode(' | ');
 				p.appendChild(pbr);
@@ -744,6 +771,11 @@ function renderMeetings(holder, inMeetings, team){
 	holder.appendChild(meetingCards);
 	var createLink = document.createElement('button');
 		createLink.addEventListener('click', e => {
+			prometheus.save({
+				type: 'ORGANIZE_MEETING_BUTTON',
+				tid: TEAM_ID,
+				source: 'Organize Meeting Button'
+			});
 			listenForCreatedMeeting();
 			var cWin = window.open('https://www.omnipointment.com/meeting/create');
 		})
@@ -776,11 +808,21 @@ function listenForCreatedMeeting(){
 }
 
 var firstMeetingFn = e => {
+	prometheus.save({
+		type: 'ORGANIZE_MEETING_BUTTON',
+		tid: TEAM_ID,
+		source: 'First Meeting Pin'
+	});
 	listenForCreatedMeeting();
 	var cWin = window.open('https://www.omnipointment.com/meeting/create');
 }
 
 var inviteMembersFn = e => {
+	prometheus.save({
+		type: 'COPY_TEAM_PAGE_LINK',
+		tid: TEAM_ID,
+		source: 'Invite Members Pin'
+	});
 	vex.dialog.prompt({
 		message: 'Link copied. Now, it share with your teammates!',
 		value: window.location.href,
@@ -901,12 +943,24 @@ function renderPins(holder, pinMap, team){
 function addPin(tid, pin){
 	pin.created = Date.now();
 	var ref = LabsDB.ref('omniteams/teams/' + tid + '/pins');
-		ref.push(pin);
+	var newRef = ref.push(pin);
+	prometheus.save({
+		type: 'ADD_PIN',
+		tid: tid,
+		text: pin.text,
+		url: pin.url ? pin.url : false,
+		pid: newRef.key
+	});
 }
 
 function removePin(tid, pid){
 	var ref = LabsDB.ref('omniteams/teams/' + tid + '/pins/' + pid + '/removed');
 		ref.set(Date.now());
+	prometheus.save({
+		type: 'REMOVE_PIN',
+		tid: tid,
+		pid: pid
+	});
 }
 
 function selectTeam(tid){
@@ -932,6 +986,11 @@ function selectTeam(tid){
 function mainTeam(){
 
 	getTeam(TEAM_ID).then(team => {
+
+		prometheus.save({
+			type: 'TEAM_PAGE',
+			tid: TEAM_ID
+		});
 		
 		if(!(UID in team.members)){
 			document.getElementById('page').style.opacity = 0.25;
@@ -1008,10 +1067,23 @@ function mainTeam(){
 			});
 			var latest = latestMeetings[0];
 			if(latest){
+				prometheus.save({
+					type: 'RATING_REFERRAL',
+					tid: TEAM_ID,
+					mid: latest.mid,
+					source: 'Team Page Action Parameter'
+				});
 				var mURL = 'https://www.omnipointment.com/meeting/' + latest.mid + '/ratings';
 				var mWin = window.open(mURL);
+				window.location.search = '?team=' + TEAM_ID;
 			}
 			else{
+				prometheus.save({
+					type: 'RATING_REFERRAL',
+					tid: TEAM_ID,
+					mid: false,
+					source: 'Team Page Action Fallback'
+				});
 				var rateHTML = '';
 				rateHTML += '<h3>Rate Your Team</h3>'
 				rateHTML += '<p>Visit your latest Omnipointment meeting and click the <button class="btn btn--inline btn--primary" style="margin: 0;">Rate Your Team</button> button!</p>'
@@ -1019,7 +1091,7 @@ function mainTeam(){
 					unsafeMessage: rateHTML,
 					buttons: [],
 					callback: value => {
-
+						window.location.search = '?team=' + TEAM_ID;
 					}
 				});
 			}
@@ -1032,6 +1104,11 @@ function mainTeam(){
 		}
 	});
 	copyLink.on('success', e => {
+		prometheus.save({
+			type: 'COPY_TEAM_PAGE_LINK',
+			tid: TEAM_ID,
+			source: e.trigger.dataset.linksource
+		});
 		vex.dialog.prompt({
 			message: 'Link copied. Now, it share with your teammates!',
 			value: window.location.href,
@@ -1120,6 +1197,7 @@ function initApp(uid){
 			callback: value => {
 				prometheus.save({
 					type: 'TEAM_PAGES_FEEDBACK',
+					tid: TEAM_ID,
 					feedback: value
 				});
 			}

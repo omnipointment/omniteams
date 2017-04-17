@@ -105,6 +105,10 @@ function addMeetingToTeam(tid, mid, meeting){
 }
 
 function joinTeam(tid, uid){
+	prometheus.save({
+		type: 'JOIN_COURSE_TEAM',
+		tid: tid
+	});
 	return new Promise((resolve, reject) => {
 		var ref = LabsDB.ref('omniteams/teams/' + tid + '/members/' + uid);
 		ref.set(true).then(resolve).catch(reject);
@@ -174,6 +178,12 @@ function createCourseTeam(name, courseCode){
 	return new Promise((resolve, reject) => {
 		createNewTeam(name).then(team => {
 			LabsDB.ref('omniteams/teams/' + team.tid + '/course').set(courseCode).then(done => {
+				prometheus.save({
+					type: 'CREATE_COURSE_TEAM',
+					tid: team.tid,
+					name: name,
+					course: courseCode
+				});
 				resolve(team);
 			}).catch(reject);
 		}).catch(reject);
@@ -259,6 +269,11 @@ function initApp(uid){
 }
 
 function mainCourse(courseCode){
+
+	prometheus.save({
+		type: 'COURSE_TEAM_SIGNUP_PAGE',
+		course: courseCode
+	});
 
 	var createButton = document.createElement('button');
 		createButton.innerText = 'Start New Team';
