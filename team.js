@@ -279,6 +279,7 @@ function getQueryParams(qs) {
 
 function addMeetingToTeam(tid, mid, meeting){
 	var meetingData = meeting || {name: false};
+	meetingData.added = Date.now();
 	return new Promise((resolve, reject) => {
 		var ref = LabsDB.ref('omniteams/teams/' + tid + '/meetings/' + mid);
 		ref.set(meetingData).then(res => {
@@ -793,28 +794,36 @@ function renderPins(holder, pinMap, team){
 	holder.innerHTML = '';
 	var ul = document.createElement('div');
 		ul.classList.add('pin-holder');
-	if(Object.keys(team.meetings).length < 1){
-		pinMap.firstMeeting = {
-			text: 'Schedule your first team meeting',
-			callback: firstMeetingFn
-		}
-	}
-	if(Object.keys(team.members).length < 2){
-		pinMap.inviteMembers = {
-			text: 'Invite your team members',
-			callback: inviteMembersFn
-		}
-	}
 	var pins = pinMap || {};
-	if(Object.keys(pins).length === 0){
-		pins.sample = {
-			text: 'Pin important URLs or team goals for all team members to see.'
-		}
-	}
 	var pinList = Object.keys(pins).map(pid => {
 		pins[pid].pid = pid;
 		return pins[pid];
+	}).filter(pin => {
+		return pin.master ? true : !pin.removed;
 	});
+	if(Object.keys(team.meetings).length < 1){
+		pinList.push({
+			pid: 'firstMeeting',
+			text: 'Schedule your first team meeting',
+			callback: firstMeetingFn,
+			master: true
+		});
+	}
+	if(Object.keys(team.members).length < 2){
+		pinList.push({
+			pid: 'inviteMembers',
+			text: 'Invite your team members',
+			callback: inviteMembersFn,
+			master: true
+		});
+	}
+	if(pinList.length === 0){
+		pinList.push({
+			pid: 'sample',
+			text: 'Pin important URLs or team goals for all team members to see.',
+			master: true
+		});
+	}
 	pinList.forEach(pin => {
 		var pid = pin.pid;
 		var div = document.createElement('div');
@@ -838,7 +847,7 @@ function renderPins(holder, pinMap, team){
 				s.innerText = pin.text;
 				div.appendChild(s);
 			}
-			if(UID === team.owner){
+			if(UID === team.owner && !pin.master){
 				var rem = document.createElement('span');
 					rem.classList.add('pin-remover');
 					rem.dataset.pid = pid;
@@ -890,13 +899,14 @@ function renderPins(holder, pinMap, team){
 }
 
 function addPin(tid, pin){
+	pin.created = Date.now();
 	var ref = LabsDB.ref('omniteams/teams/' + tid + '/pins');
 		ref.push(pin);
 }
 
 function removePin(tid, pid){
-	var ref = LabsDB.ref('omniteams/teams/' + tid + '/pins/' + pid);
-		ref.remove();
+	var ref = LabsDB.ref('omniteams/teams/' + tid + '/pins/' + pid + '/removed');
+		ref.set(Date.now());
 }
 
 function selectTeam(tid){
@@ -986,6 +996,34 @@ function mainTeam(){
 			renderMembers(memCont, members, team);
 		var metCont = document.getElementById('meetings-container');
 			renderMeetings(metCont, team.meetings, team);
+		// Feedback Action:
+		if(params.action === 'ratings'){
+			params.action = false;
+			var latestMeetings = Object.keys(team.meetings).map(mid => {
+				var teamData = team.meetings[mid];
+					teamData.mid = mid;
+				return teamData;
+			}).sort((a, b) => {
+				return b.added - a.added;
+			});
+			var latest = latestMeetings[0];
+			if(latest){
+				var mURL = 'https://www.omnipointment.com/meeting/' + latest.mid + '/ratings';
+				var mWin = window.open(mURL);
+			}
+			else{
+				var rateHTML = '';
+				rateHTML += '<h3>Rate Your Team</h3>'
+				rateHTML += '<p>Visit your latest Omnipointment meeting and click the <button class="btn btn--inline btn--primary" style="margin: 0;">Rate Your Team</button> button!</p>'
+				vex.dialog.open({
+					unsafeMessage: rateHTML,
+					buttons: [],
+					callback: value => {
+
+					}
+				});
+			}
+		}
 	});
 
 	var copyLink = new Clipboard('.copy-link', {
