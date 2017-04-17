@@ -977,6 +977,9 @@ function selectTeam(tid){
 	if(tid){
 		if(params.team !== tid){
 			var teamURL = window.location.origin + window.location.pathname + '?team=' + tid;
+			if(params.action){
+				teamURL += '&action=' + params.action;
+			}
 			window.location = teamURL;
 		}
 		else{
