@@ -560,13 +560,10 @@ function renderMembers(holder, members, team){
 	});
 	Promise.all(promises).then(users => {
 		getTeamAchievements(team, AWARDS).then(achievements => {
-			var p = document.createElement('p');
-				p.innerText = 'Invite other teammates by sending them ';
-			var a = document.createElement('a');
-				a.innerText = 'this link.';
-				a.classList.add('copy-link');
-				p.appendChild(a);
-			holder.appendChild(p);
+			users = users.map((user, udx) => {
+				user.uid = promises[udx].uid;
+				return user;
+			});
 			users.forEach((user, udx) => {
 				var uid = promises[udx].uid;
 				var div = document.createElement('div');
@@ -601,8 +598,92 @@ function renderMembers(holder, members, team){
 					}
 					holder.appendChild(div);
 			});
+			var p = document.createElement('p');
+			var a = document.createElement('a');
+				a.innerText = 'Invite Members';
+				a.classList.add('copy-link');
+				p.appendChild(a);
+			var pbr = document.createTextNode(' | ');
+				p.appendChild(pbr);
+			var a2 = document.createElement('a');
+				a2.innerText = 'Remove Members';
+				a2.addEventListener('click', e => {
+					editTeamRoster(team, users);
+				});
+				p.appendChild(a2);
+			holder.appendChild(p);
 		});
 	});
+}
+
+function editTeamRoster(team, users){
+	var pane = document.createElement('div');
+	var h = document.createElement('h3');
+		h.innerText = 'Remove Members';
+		pane.appendChild(h);
+	users.forEach(user => {
+		var div = document.createElement('div');
+			div.classList.add('member');
+			div.dataset.uid = user.uid;
+			div.dataset.name = user.name;
+		var pic = document.createElement('div');
+			pic.style.background = 'url("' + user.picture + '")'
+		var name = document.createElement('div');
+			name.innerText = user.name;
+			//name.innerText += '(' + user.email + ')';
+			div.appendChild(pic);
+			div.appendChild(name);
+		div.addEventListener('click', e => {
+			var uid = e.target.dataset.uid;
+			var userName = e.target.dataset.name;
+			editRosterMember(user.uid, user.name);
+		});
+		pane.appendChild(div);
+	});
+	vex.dialog.open({
+		unsafeMessage: '<div id="vex-edit-team-roster"></div>',
+		buttons: []
+	});
+	var v = document.getElementById('vex-edit-team-roster');
+		v.appendChild(pane);
+}
+
+function editRosterMember(uid, name){
+	var pane = document.createElement('div');
+	var h = document.createElement('h3');
+		h.innerText = 'Remove ' + name + '?';
+		pane.appendChild(h);
+	var b1 = document.createElement('button');
+		b1.classList.add('btn', 'btn--inline', 'btn--ghost');
+		b1.innerText = 'This member is a duplicate.';
+		b1.addEventListener('click', e => {
+			editDuplicateMember(uid, TEAM_ID);
+		});
+	var b2 = document.createElement('button');
+		b2.classList.add('btn', 'btn--inline', 'btn--ghost');
+		b2.innerText = 'This member is not part of our team.';
+		b2.addEventListener('click', e => {
+			removeUserFromTeam(uid, TEAM_ID);
+		});
+	pane.appendChild(b1);
+	pane.appendChild(b2);
+	vex.dialog.open({
+		unsafeMessage: '<div id="vex-edit-roster-member"></div>',
+		buttons: []
+	});
+	var v = document.getElementById('vex-edit-roster-member');
+		v.appendChild(pane);
+}
+
+function editDuplicateMember(uid, tid){
+	vex.dialog.alert({
+		message: 'Please email team@omnipointment.com and we will help you handle this duplicate account.'
+	});
+}
+
+function removeUserFromTeam(uid, tid){
+	var ref = LabsDB.ref('omniteams/teams/' + tid + '/members/' + uid);
+	ref.remove();
 }
 
 function renderCards(list, cardClass){
