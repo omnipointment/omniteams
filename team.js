@@ -774,24 +774,63 @@ function listenForCreatedMeeting(){
 	});
 }
 
+var firstMeetingFn = e => {
+	listenForCreatedMeeting();
+	var cWin = window.open('https://www.omnipointment.com/meeting/create');
+}
+
+var inviteMembersFn = e => {
+	vex.dialog.prompt({
+		message: 'Link copied. Now, it share with your teammates!',
+		value: window.location.href,
+		callback: value => {
+
+		}
+	});
+}
+
 function renderPins(holder, pinMap, team){
 	holder.innerHTML = '';
 	var ul = document.createElement('div');
-		ul.classList.add('pin-holder')
+		ul.classList.add('pin-holder');
+	if(Object.keys(team.meetings).length < 1){
+		pinMap.firstMeeting = {
+			text: 'Schedule your first team meeting',
+			callback: firstMeetingFn
+		}
+	}
+	if(Object.keys(team.members).length < 5){
+		pinMap.inviteMembers = {
+			text: 'Invite your team members',
+			callback: inviteMembersFn
+		}
+	}
 	var pins = pinMap || {};
 	if(Object.keys(pins).length === 0){
 		pins.sample = {
 			text: 'Pin important URLs or team goals for all team members to see.'
 		}
 	}
-	for(var pid in pins){
-		var pin = pins[pid];
+	var pinList = Object.keys(pins).map(pid => {
+		pins[pid].pid = pid;
+		return pins[pid];
+	});
+	pinList.forEach(pin => {
+		var pid = pin.pid;
 		var div = document.createElement('div');
 			if(pin.url){
 				var a = document.createElement('a');
 					a.href = pin.url;
 					a.target = '_blank';
 					a.innerText = pin.text;
+					div.appendChild(a);
+			}
+			else if(pin.callback){
+				var a = document.createElement('a');
+					a.innerText = pin.text;
+					a.addEventListener('click', e => {
+						pin.callback(e);
+					});
 					div.appendChild(a);
 			}
 			else{
@@ -811,7 +850,7 @@ function renderPins(holder, pinMap, team){
 				div.appendChild(rem);
 			}
 			ul.appendChild(div);
-	}
+	});
 	holder.appendChild(ul);
 	var button = document.createElement('button');
 		button.innerText = 'Add Pinned Item';
