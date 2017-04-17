@@ -704,12 +704,22 @@ function editRosterMember(uid, name){
 }
 
 function editDuplicateMember(uid, tid){
+	prometheus.save({
+		type: 'EDIT_DUPLICATE_MEMBER',
+		tid: tid,
+		uid: uid
+	});
 	vex.dialog.alert({
 		message: 'Please email team@omnipointment.com and we will help you handle this duplicate account.'
 	});
 }
 
 function removeUserFromTeam(uid, tid){
+	prometheus.save({
+		type: 'REMOVE_MEMBER',
+		tid: tid,
+		uid: uid
+	});
 	var ref = LabsDB.ref('omniteams/teams/' + tid + '/members/' + uid);
 	ref.remove();
 }
