@@ -1045,7 +1045,20 @@ function mainTeam(){
 					rmContainer.style.display = 'block';
 				var rmHolder = document.createElement('div');
 				renderRecentMeetings(rmHolder, meetingList);
-				rmContainer.appendChild(rmHolder);				
+				rmContainer.appendChild(rmHolder);
+				var igRef = LabsDB.ref('omniteams/teams/' + TEAM_ID + '/ignoremids');
+				igRef.on('value', igSnap => {
+					var igMap = igSnap.val() || {};
+					var alreadyignored = 0;
+					meetingList.forEach(igMtg => {
+						if(igMtg.mid in igMap){
+							alreadyignored++;
+						}
+					});
+					if(alreadyignored >= meetingList.length){
+						rmContainer.style.display = 'none';
+					}
+				});
 			}
 		});
 
