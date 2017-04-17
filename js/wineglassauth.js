@@ -6,6 +6,13 @@ function wineGlassAuth(config){
 			var loginWindow = null;
 			login().then(resolveAuth).catch(err => {
 				loginWindow = window.open(LOGIN_REDIRECT_URL);
+				var popup = loginWindow;
+				if(!popup || popup.closed || typeof popup.closed == 'undefined'){
+					rejectAuth({
+						type: 'POPUP_BLOCKED',
+						message: 'Login failed. Allow pop-ups and reload the page.'
+					});
+				}
 				recursiveLoginCheck(resolveAuth);
 			});
 			function login(){

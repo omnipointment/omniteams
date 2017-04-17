@@ -167,6 +167,20 @@ function fillTextSpans(spanClass, text){
 	}
 }
 
+function FormatTeam(val, tid){
+	val.tid = tid;
+	if(!val.pins){
+		val.pins = {};
+	}
+	if(!val.meetings){
+		val.meetings = {};
+	}
+	if(!val.ignoremids){
+		val.ignoremids = {};
+	}
+	return val;
+}
+
 function createNewTeam(name){
 	return new Promise((resolve, reject) => {
 		if(name){
@@ -178,7 +192,8 @@ function createNewTeam(name){
 				members: members
 			}
 			LabsDB.ref('omniteams/teams').push(team).then(res => {
-				team.tid = res.path['o'][2];
+				var tid = res.path['o'][2];
+				team = FormatTeam(team, tid);
 				resolve(team);
 			}).catch(reject);			
 		}
@@ -196,16 +211,7 @@ function getTeams(){
 			var val = snap.val() || {};
 			var teams = Object.keys(val).map(tid => {
 				var team = val[tid];
-					team.tid = tid;
-				if(!team.pins){
-					team.pins = {};
-				}
-				if(!team.meetings){
-					team.meetings = {};
-				}
-				if(!team.ignoremids){
-					team.ignoremids = {};
-				}
+				team = FormatTeam(team, tid);
 				return team;
 			});
 			resolve(teams);
@@ -222,15 +228,7 @@ function getTeam(tid){
 				if(!snap.exists()){
 					reject('No team exists with this ID.');
 				}
-				if(!val.pins){
-					val.pins = {};
-				}
-				if(!val.meetings){
-					val.meetings = {};
-				}
-				if(!val.ignoremids){
-					val.ignoremids = {};
-				}
+				val = FormatTeam(val, tid);
 				resolve(val);
 			}).catch(reject);
 		}
@@ -391,11 +389,19 @@ function Award(config){
 					cand.score = award.score(cand.nodes);
 				}
 			}
-			if(award.rank){
-				return award.candidates.sort(award.rank)[0];
+			award.candidates = award.candidates.filter(cand => {
+				return cand.score;
+			});
+			if(award.candidates.length < 1){
+				return false;
 			}
 			else{
-				return award.candidates[0];
+				if(award.rank){
+					return award.candidates.sort(award.rank)[0];
+				}
+				else{
+					return award.candidates[0];
+				}
 			}
 		},
 		present: () => {
@@ -465,12 +471,16 @@ AWARDS.push(Award({
 				}
 			}
 		});
+		var nominate = false;
 		for(var m in meetings){
 			if(meetings[m] === 'CREATOR'){
 				meetings[m] = Infinity;
 			}
+			else{
+				nominate = true;
+			}
 		}
-		return {meetings: meetings};
+		return nominate ? {meetings: meetings} : false;
 	},
 	rank: (a, b) => {
 		var ac = 0;
@@ -513,7 +523,7 @@ AWARDS.push(Award({
 				slots += delta;
 			}
 		});
-		return slots;
+		return slots > 0 ? slots : false;
 	},
 	rank: (a, b) => {
 		return b.score - a.score;
@@ -533,7 +543,7 @@ AWARDS.push(Award({
 				count++;
 			}
 		});
-		return count;
+		return count > 0 ? count : false;
 	},
 	rank: (a, b) => {
 		return b.score - a.score;
@@ -550,13 +560,10 @@ function renderMembers(holder, members, team){
 	});
 	Promise.all(promises).then(users => {
 		getTeamAchievements(team, AWARDS).then(achievements => {
-			var p = document.createElement('p');
-				p.innerText = 'Invite other teammates by sending them ';
-			var a = document.createElement('a');
-				a.innerText = 'this link.';
-				a.classList.add('copy-link');
-				p.appendChild(a);
-			holder.appendChild(p);
+			users = users.map((user, udx) => {
+				user.uid = promises[udx].uid;
+				return user;
+			});
 			users.forEach((user, udx) => {
 				var uid = promises[udx].uid;
 				var div = document.createElement('div');
@@ -591,8 +598,92 @@ function renderMembers(holder, members, team){
 					}
 					holder.appendChild(div);
 			});
+			var p = document.createElement('p');
+			var a = document.createElement('a');
+				a.innerText = 'Invite Members';
+				a.classList.add('copy-link');
+				p.appendChild(a);
+			var pbr = document.createTextNode(' | ');
+				p.appendChild(pbr);
+			var a2 = document.createElement('a');
+				a2.innerText = 'Remove Members';
+				a2.addEventListener('click', e => {
+					editTeamRoster(team, users);
+				});
+				p.appendChild(a2);
+			holder.appendChild(p);
 		});
 	});
+}
+
+function editTeamRoster(team, users){
+	var pane = document.createElement('div');
+	var h = document.createElement('h3');
+		h.innerText = 'Remove Members';
+		pane.appendChild(h);
+	users.forEach(user => {
+		var div = document.createElement('div');
+			div.classList.add('member');
+			div.dataset.uid = user.uid;
+			div.dataset.name = user.name;
+		var pic = document.createElement('div');
+			pic.style.background = 'url("' + user.picture + '")'
+		var name = document.createElement('div');
+			name.innerText = user.name;
+			//name.innerText += '(' + user.email + ')';
+			div.appendChild(pic);
+			div.appendChild(name);
+		div.addEventListener('click', e => {
+			var uid = e.target.dataset.uid;
+			var userName = e.target.dataset.name;
+			editRosterMember(user.uid, user.name);
+		});
+		pane.appendChild(div);
+	});
+	vex.dialog.open({
+		unsafeMessage: '<div id="vex-edit-team-roster"></div>',
+		buttons: []
+	});
+	var v = document.getElementById('vex-edit-team-roster');
+		v.appendChild(pane);
+}
+
+function editRosterMember(uid, name){
+	var pane = document.createElement('div');
+	var h = document.createElement('h3');
+		h.innerText = 'Remove ' + name + '?';
+		pane.appendChild(h);
+	var b1 = document.createElement('button');
+		b1.classList.add('btn', 'btn--inline', 'btn--ghost');
+		b1.innerText = 'This member is a duplicate.';
+		b1.addEventListener('click', e => {
+			editDuplicateMember(uid, TEAM_ID);
+		});
+	var b2 = document.createElement('button');
+		b2.classList.add('btn', 'btn--inline', 'btn--ghost');
+		b2.innerText = 'This member is not part of our team.';
+		b2.addEventListener('click', e => {
+			removeUserFromTeam(uid, TEAM_ID);
+		});
+	pane.appendChild(b1);
+	pane.appendChild(b2);
+	vex.dialog.open({
+		unsafeMessage: '<div id="vex-edit-roster-member"></div>',
+		buttons: []
+	});
+	var v = document.getElementById('vex-edit-roster-member');
+		v.appendChild(pane);
+}
+
+function editDuplicateMember(uid, tid){
+	vex.dialog.alert({
+		message: 'Please email team@omnipointment.com and we will help you handle this duplicate account.'
+	});
+}
+
+function removeUserFromTeam(uid, tid){
+	var ref = LabsDB.ref('omniteams/teams/' + tid + '/members/' + uid);
+	ref.remove();
 }
 
 function renderCards(list, cardClass){
@@ -628,7 +719,8 @@ function renderCards(list, cardClass){
 	return holder;
 }
 
-function renderMeetings(holder, meetings, team){
+function renderMeetings(holder, inMeetings, team){
+	var meetings = inMeetings || {};
 	holder.innerHTML = '';
 	/*for(var mid in meetings){
 		var meeting = meetings[mid];
@@ -651,30 +743,94 @@ function renderMeetings(holder, meetings, team){
 	holder.appendChild(meetingCards);
 	var createLink = document.createElement('button');
 		createLink.addEventListener('click', e => {
-			window.open('https://www.omnipointment.com/meeting/create');
+			listenForCreatedMeeting();
+			var cWin = window.open('https://www.omnipointment.com/meeting/create');
 		})
 		createLink.innerText = 'Organize New Meeting';
 		createLink.classList.add('btn', 'btn--center', 'btn--primary');
 		holder.appendChild(createLink);
 }
 
+function listenForCreatedMeeting(){
+	var ref = OmniDB.ref('prometheus/visits/' + UID);
+	var query = ref.orderByChild('meta/datetime/timestamp').startAt(Date.now());
+	var mid = false;
+	var name = false;
+	query.on('child_added', snap => {
+		var val = snap.val();
+		if(val.visit.type === 'EDIT_MEETING'){
+			mid = val.visit.mid;
+			name = parseMeetingName(val.meta.page.title);
+		}
+		if(val.visit.mid && val.visit.mid === mid){
+			name = parseMeetingName(val.meta.page.title);
+			if(name){
+				addMeetingToTeam(TEAM_ID, val.visit.mid, {
+					name: name
+				});
+				query.off();
+			}
+		}
+	});
+}
+
+var firstMeetingFn = e => {
+	listenForCreatedMeeting();
+	var cWin = window.open('https://www.omnipointment.com/meeting/create');
+}
+
+var inviteMembersFn = e => {
+	vex.dialog.prompt({
+		message: 'Link copied. Now, it share with your teammates!',
+		value: window.location.href,
+		callback: value => {
+
+		}
+	});
+}
+
 function renderPins(holder, pinMap, team){
 	holder.innerHTML = '';
-	var ul = document.createElement('ul');
+	var ul = document.createElement('div');
+		ul.classList.add('pin-holder');
+	if(Object.keys(team.meetings).length < 1){
+		pinMap.firstMeeting = {
+			text: 'Schedule your first team meeting',
+			callback: firstMeetingFn
+		}
+	}
+	if(Object.keys(team.members).length < 5){
+		pinMap.inviteMembers = {
+			text: 'Invite your team members',
+			callback: inviteMembersFn
+		}
+	}
 	var pins = pinMap || {};
 	if(Object.keys(pins).length === 0){
 		pins.sample = {
 			text: 'Pin important URLs or team goals for all team members to see.'
 		}
 	}
-	for(var pid in pins){
-		var pin = pins[pid];
-		var div = document.createElement('li');
+	var pinList = Object.keys(pins).map(pid => {
+		pins[pid].pid = pid;
+		return pins[pid];
+	});
+	pinList.forEach(pin => {
+		var pid = pin.pid;
+		var div = document.createElement('div');
 			if(pin.url){
 				var a = document.createElement('a');
 					a.href = pin.url;
 					a.target = '_blank';
 					a.innerText = pin.text;
+					div.appendChild(a);
+			}
+			else if(pin.callback){
+				var a = document.createElement('a');
+					a.innerText = pin.text;
+					a.addEventListener('click', e => {
+						pin.callback(e);
+					});
 					div.appendChild(a);
 			}
 			else{
@@ -694,7 +850,7 @@ function renderPins(holder, pinMap, team){
 				div.appendChild(rem);
 			}
 			ul.appendChild(div);
-	}
+	});
 	holder.appendChild(ul);
 	var button = document.createElement('button');
 		button.innerText = 'Add Pinned Item';
@@ -818,6 +974,7 @@ function mainTeam(){
 	var teamRef = LabsDB.ref('omniteams/teams/' + TEAM_ID);
 	teamRef.on('value', snap => {
 		var team = snap.val();
+		team = FormatTeam(team, TEAM_ID);
 		var pinCont = document.getElementById('pins-container');
 			renderPins(pinCont, team.pins, team);
 		var memCont = document.getElementById('members-container');
@@ -850,6 +1007,19 @@ function mainTeam(){
 
 }
 
+// Not working: should just add name param to Prometheus
+function getNameFromMID(mid, uid){
+	var url = 'https://www.omnipointment.com/meeting/' + mid + '?rdr=false';
+	var midWin = window.open(url);
+	window.midWin = midWin;
+	var ref = OmniDB.ref('prometheus/visits/' + uid);
+	var query = ref.orderByChild('meta/datetime/timestamp').limitToLast(1);
+	query.once('value', snap => {
+		var val = snap.val();
+		console.log(val);
+	});
+}
+
 function changeTeamID(oldID, newID){
 	var oldRef = LabsDB.ref('omniteams/teams/' + oldID);
 	var newRef = LabsDB.ref('omniteams/teams/' + newID);
@@ -868,6 +1038,12 @@ function changeTeamID(oldID, newID){
 	});
 }
 
+function displayError(msg){
+	vex.dialog.alert({
+		message: msg
+	});
+}
+
 var UID = null;
 var params = {};
 var TEAM_ID = null;
@@ -879,7 +1055,14 @@ var authConfig = {
 	xdSourceURL: 'https://www.omnipointment.com/nothingtoseehere.html'
 }
 
-wineGlassAuth(authConfig).then(initApp);
+wineGlassAuth(authConfig).then(initApp).catch(err => {
+	if(err.type === 'POPUP_BLOCKED'){
+		displayError(err.message);
+	}
+	else{
+		displayError(err);
+	}
+});
 
 function initApp(uid){
 	UID = uid;
