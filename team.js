@@ -777,7 +777,8 @@ function renderMeetings(holder, inMeetings, team){
 			url: 'https://www.omnipointment.com/meeting/' + mid + '?rdr=false'
 		}
 	});
-	var meetingCards = renderCards(mtgList, 'col--onefourth-xs');
+	var col_class = 'col--onehalf-sm'; // 'col--onefourth-xs col--onehalf-md'
+	var meetingCards = renderCards(mtgList, col_class);
 	holder.appendChild(meetingCards);
 	var createLink = document.createElement('button');
 		createLink.addEventListener('click', e => {
