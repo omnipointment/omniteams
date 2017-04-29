@@ -40,6 +40,15 @@
 				min-height: 0 !important;
 			}
 
+			.bold-link {
+				font-weight: bold;
+				color: #2D0A58;
+			}
+
+			.bold-link:hover {
+				cursor: pointer;
+			}
+
 		</style>
 	</head>
 	<body class="body body--landing">
@@ -86,17 +95,34 @@
 
 			<div id="team-container" class="container-hidden">
 
-				<div class="row">
+				<h1 class="fill-team"></h1>
+				<!--<p><button class="copy-link btn div--inline btn--ghost" data-linksource="Home Base Button">Copy Link</button> This is your team's home base.</p>-->
+				<p>Welcome to home base. <span class="copy-link bold-link" data-linksource="Home Base Span">Share the link.</span></p>
+
+				<div class="row col-holder">
+
+					<div class="col col--twothirds-sm">
+
+						<div class="toggle is-expanded">
+							<div class="toggle__section link" data-hook="toggle">
+								<div class="toggle__header">
+									<h2 class="u-textLeft" data-hook="header">Meetings</h2>
+								</div>
+								<div class="toggle__chevron"></div>
+							</div>
+							<div class="toggle__section toggle__expandable" data-hook="content">
+								<div id="meetings-container"></div>
+							</div>
+						</div>
+
+					</div>
 
 					<div class="col col--onethird-sm">
-
-						<h1 class="fill-team"></h1>
-						<p><button class="copy-link btn div--inline btn--ghost" data-linksource="Home Base Button">Copy Link</button> This is your team's home base.</p>
 				
 						<div class="toggle is-expanded">
 							<div class="toggle__section link" data-hook="toggle">
 								<div class="toggle__header">
-									<h4 class="u-textLeft" data-hook="header">Pinned Items</h4>
+									<h2 class="u-textLeft" data-hook="header">Pinned Items</h2>
 								</div>
 								<div class="toggle__chevron"></div>
 							</div>
@@ -105,31 +131,15 @@
 							</div>
 						</div>
 
-					</div>
-
-					<div class="col col--twothirds-sm">
-
 						<div class="toggle is-expanded">
 							<div class="toggle__section link" data-hook="toggle">
 								<div class="toggle__header">
-									<h4 class="u-textLeft" data-hook="header">Members</h4>
+									<h2 class="u-textLeft" data-hook="header">Members</h2>
 								</div>
 								<div class="toggle__chevron"></div>
 							</div>
 							<div class="toggle__section toggle__expandable" data-hook="content">
 								<div id="members-container"></div>
-							</div>
-						</div>
-
-						<div class="toggle is-expanded">
-							<div class="toggle__section link" data-hook="toggle">
-								<div class="toggle__header">
-									<h4 class="u-textLeft" data-hook="header">Meetings</h4>
-								</div>
-								<div class="toggle__chevron"></div>
-							</div>
-							<div class="toggle__section toggle__expandable" data-hook="content">
-								<div id="meetings-container"></div>
 							</div>
 						</div>
 
