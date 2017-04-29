@@ -999,6 +999,11 @@ function selectTeam(tid){
 
 function mainTeam(){
 
+	getUser(UID).then(user => {
+		var imageBubble = document.querySelector('[data-hook="propic"]')
+		imageBubble.src = user.picture
+	});
+
 	getTeam(TEAM_ID).then(team => {
 
 		prometheus.save({
