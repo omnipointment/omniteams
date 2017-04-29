@@ -900,7 +900,8 @@ function renderPins(holder, pinMap, team){
 				s.innerText = pin.text;
 				div.appendChild(s);
 			}
-			if(UID === team.owner && !pin.master){
+			//if(UID === team.owner && !pin.master){
+			if(!pin.master){
 				var rem = document.createElement('span');
 					rem.classList.add('pin-remover');
 					rem.dataset.pid = pid;
