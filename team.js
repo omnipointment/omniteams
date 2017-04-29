@@ -777,7 +777,8 @@ function renderMeetings(holder, inMeetings, team){
 			url: 'https://www.omnipointment.com/meeting/' + mid + '?rdr=false'
 		}
 	});
-	var meetingCards = renderCards(mtgList, 'col--onefourth-xs');
+	var col_class = 'col--onehalf-sm'; // 'col--onefourth-xs col--onehalf-md'
+	var meetingCards = renderCards(mtgList, col_class);
 	holder.appendChild(meetingCards);
 	var createLink = document.createElement('button');
 		createLink.addEventListener('click', e => {
@@ -899,7 +900,8 @@ function renderPins(holder, pinMap, team){
 				s.innerText = pin.text;
 				div.appendChild(s);
 			}
-			if(UID === team.owner && !pin.master){
+			//if(UID === team.owner && !pin.master){
+			if(!pin.master){
 				var rem = document.createElement('span');
 					rem.classList.add('pin-remover');
 					rem.dataset.pid = pid;
@@ -997,6 +999,11 @@ function selectTeam(tid){
 }
 
 function mainTeam(){
+
+	getUser(UID).then(user => {
+		var imageBubble = document.querySelector('[data-hook="propic"]')
+		imageBubble.src = user.picture
+	});
 
 	getTeam(TEAM_ID).then(team => {
 

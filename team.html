@@ -34,17 +34,37 @@
 
 			#page {
 				/*background: url('img/purple-triagmonds.png') !important*/
+				padding: 35px 20px;
 			}
 
 			.landingSection--newsroom a {
 				min-height: 0 !important;
 			}
 
+			.bold-link {
+				font-weight: bold;
+				color: #2D0A58;
+			}
+
+			.bold-link:hover {
+				cursor: pointer;
+			}
+
+			/* Hack to reverse order on desktop view */
+
+			.col-holder .col--onethird-sm {
+				float: right;
+			}
+
+			.col-holder .col--twothirds-sm {
+				float: left;
+			}
+
 		</style>
 	</head>
 	<body class="body body--landing">
 
-		<header class="header header--landing">
+		<!--<header class="header header--landing">
 			<div class="row valign u-fullHeight">
 				<div class="col valign__centered">
 					<div class="row valign u-fullHeight">
@@ -54,9 +74,39 @@
 					</div>
 				</div>
 			</div>
+		</header>-->
+
+		<header class="fixed" data-hook="header" id="header">
+			<div class="row row--condensed valign u-fullHeight">
+				<div class="col col--onefourth u-fullHeight u-textLeft"></div>
+				<div class="col col--onehalf valign__centered">
+					<div class="logo logo--white u-centerBlock" data-hook="logo">
+						<a onclick="window.location = window.location.origin + window.location.pathname;" class="u-fullHeight u-fullWidth u-centerBlock"></a>
+					</div>
+				</div>
+				<div class="col col--onefourth valign__centered">
+					<a href="https://www.omnipointment.com/me">
+						<img class="imageBubble link u-pullRight" data-hook="propic">
+					</a>
+					<!--<div data-anddom-display="" data-anddom-hidden="true" data-hook="dropdown" style="display: none;">
+						<div class="dropdown" style="margin-left: 2em">
+							<div class="dropdown__triangle"></div><a href="/me/meetings">
+							<ul>
+								<li class="dropdown__item">All Meetings</li>
+								<li style="list-style: none; display: inline"></li>
+								<li class="dropdown__item">Your Account</li>
+								<li style="list-style: none; display: inline"></li>
+								<li class="dropdown__item">Promos</li>
+								<li style="list-style: none; display: inline"></li>
+								<li class="dropdown__item">Logout</li>
+							</ul></a>
+						</div>
+					</div>-->
+				</div>
+			</div>
 		</header>
 
-		<section id="page" style="padding:0">
+		<section id="page">
 
 			<div id="team-choices-container" class="container-hidden">
 				<div class="container">
@@ -85,44 +135,57 @@
 			</div>
 
 			<div id="team-container" class="container-hidden">
-				
+
 				<h1 class="fill-team"></h1>
-				<p><button class="copy-link btn div--inline btn--ghost" data-linksource="Home Base Button">Copy Link</button> This is your team's home base.</p>
+				<!--<p><button class="copy-link btn div--inline btn--ghost" data-linksource="Home Base Button">Copy Link</button> This is your team's home base.</p>-->
+				<p>Welcome to home base. <span class="copy-link bold-link" data-linksource="Home Base Span">Share the link.</span></p>
+
+				<div class="row col-holder">
+
+					<div class="col col--onethird-sm">
 				
-				<div class="toggle is-expanded">
-					<div class="toggle__section link" data-hook="toggle">
-						<div class="toggle__header">
-							<h4 class="u-textLeft" data-hook="header">Pinned Items</h4>
+						<div class="toggle is-expanded">
+							<div class="toggle__section link" data-hook="toggle">
+								<div class="toggle__header">
+									<h2 class="u-textLeft" data-hook="header">Pinned Items</h2>
+								</div>
+								<div class="toggle__chevron"></div>
+							</div>
+							<div class="toggle__section toggle__expandable" data-hook="content">
+								<div id="pins-container"></div>
+							</div>
 						</div>
-						<div class="toggle__chevron"></div>
-					</div>
-					<div class="toggle__section toggle__expandable" data-hook="content">
-						<div id="pins-container"></div>
-					</div>
-				</div>
 
-				<div class="toggle">
-					<div class="toggle__section link" data-hook="toggle">
-						<div class="toggle__header">
-							<h4 class="u-textLeft" data-hook="header">Meetings</h4>
+						<div class="toggle is-expanded">
+							<div class="toggle__section link" data-hook="toggle">
+								<div class="toggle__header">
+									<h2 class="u-textLeft" data-hook="header">Members</h2>
+								</div>
+								<div class="toggle__chevron"></div>
+							</div>
+							<div class="toggle__section toggle__expandable" data-hook="content">
+								<div id="members-container"></div>
+							</div>
 						</div>
-						<div class="toggle__chevron"></div>
-					</div>
-					<div class="toggle__section toggle__expandable" data-hook="content">
-						<div id="meetings-container"></div>
-					</div>
-				</div>
 
-				<div class="toggle">
-					<div class="toggle__section link" data-hook="toggle">
-						<div class="toggle__header">
-							<h4 class="u-textLeft" data-hook="header">Members</h4>
+					</div>
+
+					<div class="col col--twothirds-sm">
+
+						<div class="toggle is-expanded">
+							<div class="toggle__section link" data-hook="toggle">
+								<div class="toggle__header">
+									<h2 class="u-textLeft" data-hook="header">Meetings</h2>
+								</div>
+								<div class="toggle__chevron"></div>
+							</div>
+							<div class="toggle__section toggle__expandable" data-hook="content">
+								<div id="meetings-container"></div>
+							</div>
 						</div>
-						<div class="toggle__chevron"></div>
+
 					</div>
-					<div class="toggle__section toggle__expandable" data-hook="content">
-						<div id="members-container"></div>
-					</div>
+
 				</div>
 
 			</div>
