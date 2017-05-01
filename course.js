@@ -326,13 +326,13 @@ function mainCourse(courseCode){
 				h.innerText = team.name;
 				el.appendChild(h);
 			for(var uid in team.members){
-				var user = teamUsers[team.tid][uid];
+				var user = teamUsers[team.tid][uid] || {};
 				var div = document.createElement('div');
 					div.classList.add('member');
 				var pic = document.createElement('div');
-					pic.style.background = 'url("' + user.picture + '")'
+					pic.style.background = 'url("' + user.picture || 'no-image' + '")'
 				var name = document.createElement('div');
-					name.innerText = user.name;
+					name.innerText = user.name || 'Unknown Student';
 					div.appendChild(pic);
 					div.appendChild(name);
 					el.appendChild(div);
