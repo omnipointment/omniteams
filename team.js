@@ -1012,7 +1012,7 @@ function mainTeam(){
 			tid: TEAM_ID
 		});
 		
-		if(!(UID in team.members)){
+		if(!(UID in team.members) && !params.rdr){
 			document.getElementById('page').style.opacity = 0.25;
 			vex.dialog.open({
 				message: 'Are you a member of ' + team.name + '?',
