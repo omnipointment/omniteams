@@ -912,6 +912,13 @@ function renderPins(holder, pinMap, team){
 					});
 				div.appendChild(rem);
 			}
+			div.addEventListener('click', e => {
+				prometheus.save({
+					type: 'CLICK_PIN',
+					tid: tid,
+					pid: pin.pid
+				});
+			});
 			ul.appendChild(div);
 	});
 	holder.appendChild(ul);
