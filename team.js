@@ -912,6 +912,13 @@ function renderPins(holder, pinMap, team){
 					});
 				div.appendChild(rem);
 			}
+			div.addEventListener('click', e => {
+				prometheus.save({
+					type: 'CLICK_PIN',
+					tid: tid,
+					pid: pin.pid
+				});
+			});
 			ul.appendChild(div);
 	});
 	holder.appendChild(ul);
@@ -1012,7 +1019,7 @@ function mainTeam(){
 			tid: TEAM_ID
 		});
 		
-		if(!(UID in team.members)){
+		if(!(UID in team.members) && !params.rdr){
 			document.getElementById('page').style.opacity = 0.25;
 			vex.dialog.open({
 				message: 'Are you a member of ' + team.name + '?',
