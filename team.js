@@ -915,7 +915,7 @@ function renderPins(holder, pinMap, team){
 			div.addEventListener('click', e => {
 				prometheus.save({
 					type: 'CLICK_PIN',
-					tid: tid,
+					tid: TEAM_ID,
 					pid: pin.pid
 				});
 			});
