@@ -930,28 +930,33 @@ function renderPins(holder, pinMap, team){
 				message: 'What would you like to pin?',
 				placeholder: 'Try a URL or new team goal.',
 				callback: value => {
-					if(value.indexOf('http') > -1){
-						vex.dialog.prompt({
-							message: 'Link Title',
-							callback: linkTitle => {
-								if(linkTitle){
-									addPin(TEAM_ID, {
-										text: linkTitle,
-										url: value
-									});
+					if(value){
+						if(value.indexOf('http') > -1){
+							vex.dialog.prompt({
+								message: 'Link Title',
+								callback: linkTitle => {
+									if(linkTitle){
+										addPin(TEAM_ID, {
+											text: linkTitle,
+											url: value
+										});
+									}
+									else{
+										addPin(TEAM_ID, {
+											text: value
+										});
+									}
 								}
-								else{
-									addPin(TEAM_ID, {
-										text: value
-									});
-								}
-							}
-						})
-					}
-					else{
-						addPin(TEAM_ID, {
-							text: value
-						});
+							})
+						}
+						else if(value){
+							addPin(TEAM_ID, {
+								text: value
+							});
+						}
+						else{
+							console.log('Nothing Pinned.');
+						}
 					}
 				}
 			});
