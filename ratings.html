@@ -91,6 +91,14 @@
 				margin-bottom: 0;
 			}
 
+			.level-button:hover {
+				background: #2D0A58;
+			}
+
+			#ratings-view, #done-view {
+				display: none;
+			}
+
 		</style>
 	</head>
 	<body class="body body--landing">
@@ -109,6 +117,12 @@
 
 		<section id="page">
 
+			<div id="category-view">
+				<p>You will now rate your team on:</p>
+				<h1 class="rating-category"></h1>
+				<button id="category-ready" class="btn btn--center btn--primary">Go</button>
+			</div>
+
 			<div id="ratings-view">
 				<h1 class="rating-category">Contributing to the Team's Work</h1>
 				<p>Which level would you rate <span class="rating-name">Vinesh Kannan</span> at for <span class="rating-category">Contributing to the Team's Work</span>?</p>
@@ -116,9 +130,9 @@
 				<table>
 					<tr class="ratings-level">
 						<td>
-							<button class="btn btn--ghost level-button" data-level="5">Exceeds Expectations</button>
+							<button class="btn btn--ghost level-button" data-level="5"></button>
 						</td>
-						<td>
+						<td id="cell-exceeds">
 							<ul>
 								<li>Does more or higher-quality work than expected.</li>
 								<li>Makes important contributions that improve the team's work.</li>
@@ -128,7 +142,7 @@
 					</tr>
 					<tr class="ratings-level">
 						<td>
-							<button class="btn btn--ghost level-button" data-level="4">In Between</button>
+							<button class="btn btn--ghost level-button" data-level="4"></button>
 						</td>
 						<td>
 							<p>Demonstrates behaviors described in the row just above and just below.</p>
@@ -136,9 +150,9 @@
 					</tr>
 					<tr class="ratings-level">
 						<td>
-							<button class="btn btn--ghost level-button" data-level="3">Meets Expectations</button>
+							<button class="btn btn--ghost level-button" data-level="3"></button>
 						</td>
-						<td>
+						<td id="cell-meets">
 							<ul>
 								<li>Completes a fair share of the team's work with acceptable quality.</li>
 								<li>Keeps commitments and completes assignments on time.</li>
@@ -148,7 +162,7 @@
 					</tr>
 					<tr class="ratings-level">
 						<td>
-							<button class="btn btn--ghost level-button" data-level="2">In Between</button>
+							<button class="btn btn--ghost level-button" data-level="2"></button>
 						</td>
 						<td>
 							<p>Demonstrates behaviors described in the row just above and just below.</p>
@@ -156,9 +170,9 @@
 					</tr>
 					<tr class="ratings-level">
 						<td>
-							<button class="btn btn--ghost level-button" data-level="1">Below Expectations</button>
+							<button class="btn btn--ghost level-button" data-level="1"></button>
 						</td>
-						<td>
+						<td id="cell-below">
 							<ul>
 								<li>Does not do a fair share of the team's work. Delivers sloppy or incomplete work.</li>
 								<li>Misses deadlines. Is late, unprepared, or absent for team meetings.</li>
