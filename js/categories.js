@@ -1,11 +1,4 @@
 const CATEGORY_LIST = [
-
-	{
-		name: 'Additional Feedback',
-		id: 'comment',
-		type: 'comment',
-		question: 'What other feedback do you have for %NAME%?'
-	},
 	{
 		name: 'Contributing to the Team\'s Work',
 		id: 'contibuting',
@@ -129,5 +122,11 @@ const CATEGORY_LIST = [
 				'Unable to perform any of the duties of other team members.'
 			]
 		}
+	},
+	{
+		name: 'Additional Feedback',
+		id: 'comment',
+		type: 'comment',
+		question: 'What other feedback do you have for %NAME%?'
 	}
 ];

@@ -99,7 +99,7 @@ function getTeamWithUsers(tid){
 				});
 				resolve(team);
 			});
-		});
+		}).catch(reject);
 	});
 }
 
