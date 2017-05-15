@@ -103,133 +103,30 @@ function getTeamWithUsers(tid){
 	});
 }
 
-const CATEGORY_LIST = [
-	{
-		name: 'Contributing to the Team\'s Work',
-		id: 'contibuting',
-		levels: {
-			exceeds: [
-				'Does more or higher-quality work than expected.',
-				'Makes important contributions that improve the team\'s work.',
-				'Helps to complete the work of teammates who are having difficulty.'
-			],
-			meets: [
-				'Completes a fair share of the team\'s work with acceptable quality.',
-				'Keeps commitments and completes assignments on time.',
-				'Fills in for teammates when it is easy or important.'
-			],
-			below: [
-				'Does not do a fair share of the team\'s work.',
-				'Delivers sloppy or incomplete work.',
-				'Misses deadlines. Is late, unprepared, or absent for team meetings.',
-				'Does not assist teammates.',
-				'Quits if the work becomes difficult.'
-			]
+function saveRatings(ratings){
+	return new Promise((resolve, reject) => {
+		let promises = [];
+		let ratingsRef = LabsDB.ref('omniteams/ratings/' + TEAM_ID);
+		ratings.forEach(rating => {
+			let pr = ratingsRef.push(rating);
+			promises.push(pr);
+		});
+		Promise.all(promises).then(() => {
+			resolve(true);
+		}).catch(reject);
+	});
+}
 
-		}
-	},
-	{
-		name: 'Interacting with Teammates',
-		id: 'interacting',
-		levels: {
-			exceeds: [
-				'Asks for and shows an interest in teammates\' ideas and contributions.',
-				'Improves communication among teammates.',
-				'Provides encouragement or enthusiasm to the team.',
-				'Asks teammates for feedback and uses their suggestions to improve.'
-			],
-			meets: [
-				'Listens to teammates and respects their contributions.',
-				'Communicates clearly.',
-				'Shares information with teammates.',
-				'Participates fully in team activities.',
-				'Respects and responds to feedback from teammates.'
-			],
-			below: [
-				'Interrupts, ignores, bosses, or makes fun of teammates. ',
-				'Takes actions that affect teammates without their input.',
-				'Does not share information.',
-				'Complains, makes excuses, or does not interact with teammates.',
-				'Accepts no help or advice.'
-			]
-
-		}
-	},
-	{
-		name: 'Keeping the Team on Track',
-		id: 'track',
-		levels: {
-			exceeds: [
-				'Watches conditions affecting the team and monitors the team\'s progress.',
-				'Makes sure that teammates are making appropriate progress. ',
-				'Gives teammates specific, timely, and constructive feedback.'
-			],
-			meets: [
-				'Notices changes that influence the team\'s success. ',
-				'Knows what everyone on the team should be doing and notices problems. ',
-				'Alerts teammates or suggests solutions when the team\'s success is threatened.'
-			],
-			below: [
-				'Is unaware of whether the team is meeting its goals. ',
-				'Does not pay attention to teammates\' progress.',
-				'Avoids discussing team problems, even when they are obvious.'
-			]
-		}
-	},
-	{
-		name: 'Expecting Quality',
-		id: 'quality',
-		levels: {
-			exceeds: [
-				'Motivates the team to do excellent work.',
-				'Cares that the team does outstanding work, even if there is no additional reward.',
-				'Believes that the team can do excellent work.'
-			],
-			meets: [
-				'Encourages the team to do good work that meets all requirements.',
-				'Wants the team to perform well enough to earn all available rewards.  ',
-				'Believes that the team can fully meet its responsibilities.'
-			],
-			below: [
-				'Satisfied even if the team does not meet assigned standards.',
-				'Wants the team to avoid work, even if it hurts the team.',
-				'Doubts that the team can meet its requirements.'
-			]
-		}
-	},
-	{
-		name: 'Having Relevant Knowledge, Skills, and Abilities',
-		id: 'ksa',
-		levels: {
-			exceeds: [
-				'Demonstrates the knowledge, skills, and abilities to do excellent work.',
-				'Acquires new knowledge or skills to improve the team\'s performance.',
-				'Able to perform the role of any team member if necessary.'
-			],
-			meets: [
-				'Has sufficient knowledge, skills, and abilities to contribute to the team\'s work.',
-				'Acquires knowledge or skills needed to meet requirements.',
-				'Able to perform some of the tasks normally done by other team members.'
-			],
-			below: [
-				'Missing basic qualifications needed to be a member of the team.',
-				'Unable or unwilling to develop knowledge or skills to contribute to the team.',
-				'Unable to perform any of the duties of other team members.'
-			]
-		}
+function getQueryParams(qs) {
+	qs = qs.split('+').join(' ');
+	var params = {},
+		tokens,
+		re = /[?&]?([^=]+)=([^&]*)/g;
+	while (tokens = re.exec(qs)) {
+		params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
 	}
-];
-
-let USER_ID = '568eb4e705d347a26a94ecc4';
-let TEAM_ID = '-Kj9u7wuTAvJhwzfGHg2';
-
-let ratingsView = document.getElementById('ratings-view');
-let doneView = document.getElementById('done-view');
-let categoryView = document.getElementById('category-view');
-
-let currentTeammateDiv = document.getElementById('current-teammate');
-let teammateNameDivs = document.getElementsByClassName('rating-name');
-let categoryDivs = document.getElementsByClassName('rating-category');
+	return params;
+}
 
 function renderTeammateRatingScreen(user, category){
 	renderUserDiv(currentTeammateDiv, user);
@@ -281,6 +178,8 @@ function mainRatings(team){
 			else{
 				currentUser = user;
 				renderTeammateRatingScreen(currentUser, currentCategory);
+				renderCategoryProgress();
+				renderRatingsProgress();
 				uidx++;
 			}
 		}
@@ -309,12 +208,33 @@ function mainRatings(team){
 		let handleLevelClick = (level) => {
 			console.log(currentCategory.name, 'rating for ', currentUser.name);
 			ratings.push({
+				tid: TEAM_ID,
 				from: USER_ID,
 				to: currentUser.userid,
 				category: currentCategory.id,
-				level: level
+				level: level,
+				timestamp: Date.now()
 			});
 			initNextUser();
+		}
+
+		let renderCategoryProgress = () => {
+			let progressStr = (uidx + 1) + ' out of ' + userList.length;
+			for(let i = 0; i < categoryProgressDivs.length; i++){
+				let div = categoryProgressDivs[i].innerText = progressStr;
+			}
+		}
+
+		let renderRatingsProgress = () => {
+			let total = userList.length * categoryList.length;
+			let percent = ratings.length / total;
+			let totalWidth = 250;
+			let scaledWidth = totalWidth * percent;
+			progressSlider.style.width = scaledWidth + 'px';
+			let progressStr = Math.floor(percent * 100) + '%';
+			for(let i = 0; i < progressDivs.length; i++){
+				let div = progressDivs[i].innerText = progressStr;
+			}
 		}
 
 		let previewCategory = () => {
@@ -329,6 +249,7 @@ function mainRatings(team){
 
 		let ratingsFinished = () => {
 			console.log('Yay you did it.');
+			renderRatingsProgress();
 			resolve(ratings);
 		}
 
@@ -374,34 +295,21 @@ function mainRatings(team){
 
 		initNextCategory();
 
-	}).then(ratings => {
-
-		ratingsView.style.display = 'none';
-		doneView.style.display = 'block';
-
-		console.log(ratings);
-
 	});
 }
 
-getTeamWithUsers(TEAM_ID).then(team => {
-
-	//mainRatings(team);
-
-}).catch(console.error);
-
 let FAKE_TEAM = {
-	b: {
-		name: 'Brendan Batliner',
-		picture: 'https://scontent.xx.fbcdn.net/v/t1.0-1/p160x160/18199233_799489983532781_1112290490859067671_n.jpg?oh=f08f0b83e24f55a8ef3f172beb0a707f&oe=597EB153'
+	h: {
+		name: 'Haosheng Li',
+		picture: 'https://lh5.googleusercontent.com/-5PPixOlWGO0/AAAAAAAAAAI/AAAAAAAAAX8/SW_gUeqerbs/photo.jpg?sz=200'
 	},
-	j: {
-		name: 'John Valin',
-		picture: 'https://scontent.xx.fbcdn.net/v/t1.0-1/c220.126.478.478/s160x160/13091883_1014792971948311_4301784020419923916_n.jpg?oh=0bdf9b98dd93ece4ff72933eec99cfd8&oe=598279CC'
+	y: {
+		name: 'Yuan Huang',
+		picture: 'https://lh3.googleusercontent.com/-uHmMYkjsBH8/AAAAAAAAAAI/AAAAAAAAAAA/1XTzVtpueWc/photo.jpg?sz=200'
 	},
-	c: {
-		name: 'Calvin Zhu',
-		picture: 'https://scontent.xx.fbcdn.net/v/t1.0-1/c27.0.160.160/p160x160/17103428_1263265467090223_4727107438582250385_n.jpg?oh=157d9b17bdb55b27292cccec0ef48d58&oe=59B405D1'
+	l: {
+		name: 'Le Liu',
+		picture: 'https://avatars1.githubusercontent.com/u/25411457?v=3'
 	},
 	v: {
 		name: 'Vinesh Kannan',
@@ -409,10 +317,57 @@ let FAKE_TEAM = {
 	}
 };
 
-mainRatings({users: FAKE_TEAM});
+//let USER_ID = '568eb4e705d347a26a94ecc4';
+//let TEAM_ID = '-Kj9u7wuTAvJhwzfGHg2';
 
+let params = getQueryParams(document.location.search);
+let USER_ID = params.uid;
+let TEAM_ID = params.team;
 
+let ratingsView = document.getElementById('ratings-view');
+let doneView = document.getElementById('done-view');
+let categoryView = document.getElementById('category-view');
 
+let currentTeammateDiv = document.getElementById('current-teammate');
+let teammateNameDivs = document.getElementsByClassName('rating-name');
+let categoryDivs = document.getElementsByClassName('rating-category');
+let categoryProgressDivs = document.getElementsByClassName('rating-category-progress');
+let progressDivs = document.getElementsByClassName('rating-progress');
+let submissionDiv = document.getElementById('rating-submission');
+
+let progressWrapper = document.getElementById('progress-wrapper');
+let progressSlider = document.getElementById('progress-slider');
+
+let prometheus = Prometheus(OmniFirebaseConfig);
+	prometheus.logon(USER_ID);
+	prometheus.save({
+		type: 'OPEN_RATINGS'
+	});
+
+//mainRatings({users: FAKE_TEAM}).then(finishRatings).catch(console.error);
+
+getTeamWithUsers(TEAM_ID).then(team => {
+
+	mainRatings(team).then(finishRatings).catch(console.error);
+
+}).catch(console.error);
+
+let finishRatings = (ratings) => {
+
+	ratingsView.style.display = 'none';
+	doneView.style.display = 'block';
+
+	console.log(ratings);
+
+	saveRatings(ratings).then(() => {
+		submissionDiv.innerText = 'Your peer evaluations have been submitted!';
+	}).catch(console.error);
+
+	prometheus.save({
+		type: 'FINISH_RATINGS'
+	});
+
+}
 
 
 

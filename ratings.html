@@ -54,6 +54,10 @@
 				margin: 10px 0;
 			}
 
+			tr.ratings-level {
+				border-top: 2px solid rgba(230, 230, 230, 0.5);
+			}
+
 			tr.ratings-level:hover {
 				background: rgba(230, 230, 230, 0.5);
 			}
@@ -62,22 +66,8 @@
 				padding: 5px 10px;
 			}
 
-			span {
+			.bold {
 				font-weight: bold;
-			}
-
-			.btngrp--right {
-				margin: 10px 0;
-				float: right;
-			}
-
-			.btngrp--center {
-				margin: 10px 0;
-				text-align: center;
-			}
-
-			.btngrp--center button {
-				display: inline-block !important;
 			}
 
 			p.citation {
@@ -91,12 +81,52 @@
 				margin-bottom: 0;
 			}
 
+			#previous-teammate:hover {
+				cursor: pointer;
+			}
+
+			.level-button {
+				margin: 0;
+				padding: 0;
+				width: 30px;
+				height: 30px;
+				border-radius: 15px;
+			}
+
 			.level-button:hover {
 				background: #2D0A58;
 			}
 
 			#ratings-view, #done-view {
 				display: none;
+			}
+
+			#progress-holder, #progress-wrapper, #progress-slider {
+				line-height: 30px;
+			}
+
+			#progress-holder {
+				text-align: center;
+				margin: 20px auto;
+				height: 30px;
+				line-height: 30px;
+			}
+
+			#progress-wrapper, #progress-slider {
+				height: 20px;
+				vertical-align: middle;
+			}
+
+			#progress-wrapper {
+				display: inline-block;
+				width: 250px;
+				margin: 0 10px;
+				background: rgba(230, 230, 230, 0.5);
+				overflow: hidden;
+			}
+
+			#progress-slider {
+				background: #2D0A58;
 			}
 
 		</style>
@@ -117,6 +147,10 @@
 
 		<section id="page">
 
+			<div id="progress-holder">
+				<span class="bold">Progress:</span> <div id="progress-wrapper"><div id="progress-slider"></div></div> <span class="rating-progress">0%</span>
+			</div>
+
 			<div id="category-view">
 				<p>You will now rate your team on:</p>
 				<h1 class="rating-category"></h1>
@@ -125,8 +159,9 @@
 
 			<div id="ratings-view">
 				<h1 class="rating-category">Contributing to the Team's Work</h1>
-				<p>Which level would you rate <span class="rating-name">Vinesh Kannan</span> at for <span class="rating-category">Contributing to the Team's Work</span>?</p>
+				<p>How is <span class="rating-name bold">Vinesh Kannan</span> at <span class="rating-category bold">Contributing to the Team's Work</span>?</p>
 				<div id="current-teammate"></div>
+				<p><span id="previous-teammate" class="bold">Go back to previous teammate</span> | Teammate <span class="rating-category-progress">0 out of 0</span></p>
 				<table>
 					<tr class="ratings-level">
 						<td>
@@ -145,7 +180,9 @@
 							<button class="btn btn--ghost level-button" data-level="4"></button>
 						</td>
 						<td>
-							<p>Demonstrates behaviors described in the row just above and just below.</p>
+							<ul>
+								<li>Demonstrates behaviors described in the row just above and just below.</li>
+							</ul>
 						</td>
 					</tr>
 					<tr class="ratings-level">
@@ -165,7 +202,9 @@
 							<button class="btn btn--ghost level-button" data-level="2"></button>
 						</td>
 						<td>
-							<p>Demonstrates behaviors described in the row just above and just below.</p>
+							<ul>
+								<li>Demonstrates behaviors described in the row just above and just below.</li>
+							</ul>
 						</td>
 					</tr>
 					<tr class="ratings-level">
@@ -181,23 +220,17 @@
 							</ul>
 						</td>
 					</tr>
-					<tr>
-						<td colspan="2">
-							<div class="btngrp--center">
-								<button id="previous-teammate" class="btn btn--ghost">Previous Teammate</button>
-							</div>
-						</td>
-					</tr>
 				</table>
-				<p class="citation">Citation: Loughry, M. L., Ohland, M. L., & Woehr, D. J. (2014).  Assessing teamwork skills for assurance of learning using CATME Team Tools.  <em>Journal of Marketing Education</em>, 36(1), 5-19.</p>
+				<!-- Citation: Loughry, M. L., Ohland, M. L., & Woehr, D. J. (2014).  Assessing teamwork skills for assurance of learning using CATME Team Tools.  <em>Journal of Marketing Education</em>, 36(1), 5-19. -->
 			</div>
 
 			<div id="done-view">
-				<h1>All Done</h1>
+				<h1 id="rating-submission">Saving Ratings...</h1>
 			</div>
 
 		</section>
 
+		<script type="text/javascript" src="./js/categories.js"></script>
 		<script type="text/javascript" src="ratings.js"></script>
 
 	</body>
