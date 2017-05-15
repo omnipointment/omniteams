@@ -1081,6 +1081,12 @@ function mainTeam(){
 			}
 		});
 
+		var rateBtn = document.getElementById('rate-button');
+		rateBtn.addEventListener('click', e => {
+			var rateURL = window.location.origin + '/ratings.html' + '?team=' + TEAM_ID;
+			window.location = rateURL;
+		});
+
 	}).catch(err => {
 		window.location = window.location.origin + window.location.pathname;
 	});

@@ -117,6 +117,12 @@ function saveRatings(ratings){
 	});
 }
 
+function displayError(msg){
+	vex.dialog.alert({
+		message: msg
+	});
+}
+
 function getQueryParams(qs) {
 	qs = qs.split('+').join(' ');
 	var params = {},
@@ -344,13 +350,19 @@ let prometheus = Prometheus(OmniFirebaseConfig);
 		type: 'OPEN_RATINGS'
 	});
 
-//mainRatings({users: FAKE_TEAM}).then(finishRatings).catch(console.error);
+let initRatings = (uid) => {
 
-getTeamWithUsers(TEAM_ID).then(team => {
+	USER_ID = uid;
 
-	mainRatings(team).then(finishRatings).catch(console.error);
+	//mainRatings({users: FAKE_TEAM}).then(finishRatings).catch(console.error);
 
-}).catch(console.error);
+	getTeamWithUsers(TEAM_ID).then(team => {
+
+		mainRatings(team).then(finishRatings).catch(console.error);
+
+	}).catch(console.error);
+
+}
 
 let finishRatings = (ratings) => {
 
@@ -369,5 +381,17 @@ let finishRatings = (ratings) => {
 
 }
 
+var authConfig = {
+	localStorageTag: 'prometheus_user_omnipointment',
+	loginRedirectURL: 'https://www.omnipointment.com/login',
+	xdSourceURL: 'https://www.omnipointment.com/nothingtoseehere.html'
+}
 
-
+wineGlassAuth(authConfig).then(initRatings).catch(err => {
+	if(err.type === 'POPUP_BLOCKED'){
+		displayError(err.message);
+	}
+	else{
+		displayError(err);
+	}
+});
