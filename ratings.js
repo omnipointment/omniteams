@@ -144,19 +144,29 @@ function renderTeammateRatingScreen(user, category){
 	}
 }
 
-function renderCategory(category){
-	for(let bKey in category.levels){
-		let cell = document.getElementById('cell-' + bKey);
-		cell.innerHTML = '';
-		let ul = document.createElement('ul');
-		let behaviors = category.levels[bKey];
-		behaviors.forEach(behavior => {
-			let li = document.createElement('li');
-			li.innerText = behavior;
-			ul.appendChild(li);
-		});
-		cell.appendChild(ul);
+function renderCategory(category, user){
+	if(category.type === 'comment'){
+		behaviorView.style.display = 'none';
+		commentView.style.display = 'block';
 	}
+	else{
+		for(let bKey in category.levels){
+			let cell = document.getElementById('cell-' + bKey);
+			cell.innerHTML = '';
+			let ul = document.createElement('ul');
+			let behaviors = category.levels[bKey];
+			behaviors.forEach(behavior => {
+				let li = document.createElement('li');
+				li.innerText = behavior;
+				ul.appendChild(li);
+			});
+			cell.appendChild(ul);
+		}
+		commentView.style.display = 'none';
+		behaviorView.style.display = 'block';
+	}
+	let questionStr = category.question.replace('%NAME%', user.name);
+	questionDiv.innerText = questionStr;
 }
 
 function mainRatings(team){
@@ -183,6 +193,7 @@ function mainRatings(team){
 			}
 			else{
 				currentUser = user;
+				renderCategory(currentCategory, currentUser);
 				renderTeammateRatingScreen(currentUser, currentCategory);
 				renderCategoryProgress();
 				renderRatingsProgress();
@@ -198,7 +209,7 @@ function mainRatings(team){
 			else{
 				console.log('next category')
 				currentCategory = category;
-				renderCategory(currentCategory);
+				// Old renderCategory call
 				cidx++;
 				if(overrideUidx){
 					uidx = overrideUidx;
@@ -219,6 +230,19 @@ function mainRatings(team){
 				to: currentUser.userid,
 				category: currentCategory.id,
 				level: level,
+				timestamp: Date.now()
+			});
+			initNextUser();
+		}
+
+		let handleCommentSubmit = (comment) => {
+			console.log(currentCategory.name, 'rating for ', currentUser.name);
+			ratings.push({
+				tid: TEAM_ID,
+				from: USER_ID,
+				to: currentUser.userid,
+				category: currentCategory.id,
+				comment: comment,
 				timestamp: Date.now()
 			});
 			initNextUser();
@@ -274,6 +298,23 @@ function mainRatings(team){
 			});
 		}
 
+		let commentArea = document.getElementById('write-comment');
+		let commentBtn = document.getElementById('submit-comment');
+		commentBtn.addEventListener('click', e => {
+			let comment = commentArea.value;
+			console.log(comment);
+			handleCommentSubmit(comment);
+			commentArea.value = '';
+		});
+
+		let removeRating = () => {
+			let popped = ratings.pop();
+			if(popped.comment){
+				console.log('Popped: ', popped);
+				commentArea.value = popped.comment;
+			}
+		}
+
 		let prevBtn = document.getElementById('previous-teammate');
 		prevBtn.addEventListener('click', e => {
 			let oldUidx = uidx;
@@ -285,16 +326,16 @@ function mainRatings(team){
 				if(cidx < 0){
 					cidx = oldCidx;
 					uidx = oldUidx;
-					throw Error('Cannot go back');
+					throw Error('Cannot go back on first person.');
 				}
 				else{
 					let overrideUidx = userList.length - 1;
-					ratings.pop();
+					removeRating();
 					initNextCategory(overrideUidx);
 				}
 			}
 			else{
-				ratings.pop();
+				removeRating();
 				initNextUser();
 			}
 		});
@@ -333,6 +374,8 @@ let TEAM_ID = params.team;
 let ratingsView = document.getElementById('ratings-view');
 let doneView = document.getElementById('done-view');
 let categoryView = document.getElementById('category-view');
+let behaviorView = document.getElementById('behavior-view');
+let commentView = document.getElementById('comment-view');
 
 let currentTeammateDiv = document.getElementById('current-teammate');
 let teammateNameDivs = document.getElementsByClassName('rating-name');
@@ -340,6 +383,7 @@ let categoryDivs = document.getElementsByClassName('rating-category');
 let categoryProgressDivs = document.getElementsByClassName('rating-category-progress');
 let progressDivs = document.getElementsByClassName('rating-progress');
 let submissionDiv = document.getElementById('rating-submission');
+let questionDiv = document.getElementById('rating-question');
 
 let progressWrapper = document.getElementById('progress-wrapper');
 let progressSlider = document.getElementById('progress-slider');
@@ -354,13 +398,13 @@ let initRatings = (uid) => {
 
 	USER_ID = uid;
 
-	//mainRatings({users: FAKE_TEAM}).then(finishRatings).catch(console.error);
+	//mainRatings({users: FAKE_TEAM}).then(finishRatings).catch(displayError);
 
 	getTeamWithUsers(TEAM_ID).then(team => {
 
-		mainRatings(team).then(finishRatings).catch(console.error);
+		mainRatings(team).then(finishRatings).catch(displayError);
 
-	}).catch(console.error);
+	}).catch(displayError);
 
 }
 
@@ -373,7 +417,7 @@ let finishRatings = (ratings) => {
 
 	saveRatings(ratings).then(() => {
 		submissionDiv.innerText = 'Your peer evaluations have been submitted!';
-	}).catch(console.error);
+	}).catch(displayError);
 
 	prometheus.save({
 		type: 'FINISH_RATINGS'

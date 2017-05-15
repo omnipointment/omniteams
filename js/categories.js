@@ -1,7 +1,16 @@
 const CATEGORY_LIST = [
+
+	{
+		name: 'Additional Feedback',
+		id: 'comment',
+		type: 'comment',
+		question: 'What other feedback do you have for %NAME%?'
+	},
 	{
 		name: 'Contributing to the Team\'s Work',
 		id: 'contibuting',
+		type: 'behavior',
+		question: 'How is %NAME% at contributing to the team\'s work?',
 		levels: {
 			exceeds: [
 				'Does more or higher-quality work than expected.',
@@ -26,6 +35,8 @@ const CATEGORY_LIST = [
 	{
 		name: 'Interacting with Teammates',
 		id: 'interacting',
+		type: 'behavior',
+		question: 'How is %NAME% at interacting with teammates?',
 		levels: {
 			exceeds: [
 				'Asks for and shows an interest in teammates\' ideas and contributions.',
@@ -52,6 +63,8 @@ const CATEGORY_LIST = [
 	},
 	{
 		name: 'Keeping the Team on Track',
+		type: 'behavior',
+		question: 'How is %NAME% at keeping the team on track?',
 		id: 'track',
 		levels: {
 			exceeds: [
@@ -73,6 +86,8 @@ const CATEGORY_LIST = [
 	},
 	{
 		name: 'Expecting Quality',
+		type: 'behavior',
+		question: 'How is %NAME% at expecting quality?',
 		id: 'quality',
 		levels: {
 			exceeds: [
@@ -95,6 +110,8 @@ const CATEGORY_LIST = [
 	{
 		name: 'Having Relevant Knowledge, Skills, and Abilities',
 		id: 'ksa',
+		type: 'behavior',
+		question: 'How is %NAME% at having relevant knowledge, skills, and abilities?',
 		levels: {
 			exceeds: [
 				'Demonstrates the knowledge, skills, and abilities to do excellent work.',

@@ -129,6 +129,22 @@
 				background: #2D0A58;
 			}
 
+			#comment-view {
+				display: block;
+				width: 350px;
+				margin: 10px auto;
+			}
+
+			textarea {
+				border: 2px solid #2D0A58;
+				width: 100%;
+				display: block;
+				margin: 20px auto;
+				padding: 10px;
+				line-height: 20px;
+				min-height: 80px;
+			}
+
 		</style>
 	</head>
 	<body class="body body--landing">
@@ -159,69 +175,76 @@
 
 			<div id="ratings-view">
 				<h1 class="rating-category">Contributing to the Team's Work</h1>
-				<p>How is <span class="rating-name bold">Vinesh Kannan</span> at <span class="rating-category bold">Contributing to the Team's Work</span>?</p>
+				<!--<p>How is <span class="rating-name bold">Vinesh Kannan</span> at <span class="rating-category bold">Contributing to the Team's Work</span>?</p>-->
+				<p id="rating-question"></p>
 				<div id="current-teammate"></div>
 				<p><span id="previous-teammate" class="bold">Go back to previous teammate</span> | Teammate <span class="rating-category-progress">0 out of 0</span></p>
-				<table>
-					<tr class="ratings-level">
-						<td>
-							<button class="btn btn--ghost level-button" data-level="5"></button>
-						</td>
-						<td id="cell-exceeds">
-							<ul>
-								<li>Does more or higher-quality work than expected.</li>
-								<li>Makes important contributions that improve the team's work.</li>
-								<li>Helps to complete the work of teammates who are having difficulty.</li>
-							</ul>
-						</td>
-					</tr>
-					<tr class="ratings-level">
-						<td>
-							<button class="btn btn--ghost level-button" data-level="4"></button>
-						</td>
-						<td>
-							<ul>
-								<li>Demonstrates behaviors described in the row just above and just below.</li>
-							</ul>
-						</td>
-					</tr>
-					<tr class="ratings-level">
-						<td>
-							<button class="btn btn--ghost level-button" data-level="3"></button>
-						</td>
-						<td id="cell-meets">
-							<ul>
-								<li>Completes a fair share of the team's work with acceptable quality.</li>
-								<li>Keeps commitments and completes assignments on time.</li>
-								<li>Fills in for teammates when it is easy or important</li>
-							</ul>
-						</td>
-					</tr>
-					<tr class="ratings-level">
-						<td>
-							<button class="btn btn--ghost level-button" data-level="2"></button>
-						</td>
-						<td>
-							<ul>
-								<li>Demonstrates behaviors described in the row just above and just below.</li>
-							</ul>
-						</td>
-					</tr>
-					<tr class="ratings-level">
-						<td>
-							<button class="btn btn--ghost level-button" data-level="1"></button>
-						</td>
-						<td id="cell-below">
-							<ul>
-								<li>Does not do a fair share of the team's work. Delivers sloppy or incomplete work.</li>
-								<li>Misses deadlines. Is late, unprepared, or absent for team meetings.</li>
-								<li>Does not assist teammates.</li>
-								<li>Quits if the work becomes difficult.</li>
-							</ul>
-						</td>
-					</tr>
-				</table>
+				<div id="behavior-view">
+					<table>
+						<tr class="ratings-level">
+							<td>
+								<button class="btn btn--ghost level-button" data-level="5"></button>
+							</td>
+							<td id="cell-exceeds">
+								<ul>
+									<li>Does more or higher-quality work than expected.</li>
+									<li>Makes important contributions that improve the team's work.</li>
+									<li>Helps to complete the work of teammates who are having difficulty.</li>
+								</ul>
+							</td>
+						</tr>
+						<tr class="ratings-level">
+							<td>
+								<button class="btn btn--ghost level-button" data-level="4"></button>
+							</td>
+							<td>
+								<ul>
+									<li>Demonstrates behaviors described in the row just above and just below.</li>
+								</ul>
+							</td>
+						</tr>
+						<tr class="ratings-level">
+							<td>
+								<button class="btn btn--ghost level-button" data-level="3"></button>
+							</td>
+							<td id="cell-meets">
+								<ul>
+									<li>Completes a fair share of the team's work with acceptable quality.</li>
+									<li>Keeps commitments and completes assignments on time.</li>
+									<li>Fills in for teammates when it is easy or important</li>
+								</ul>
+							</td>
+						</tr>
+						<tr class="ratings-level">
+							<td>
+								<button class="btn btn--ghost level-button" data-level="2"></button>
+							</td>
+							<td>
+								<ul>
+									<li>Demonstrates behaviors described in the row just above and just below.</li>
+								</ul>
+							</td>
+						</tr>
+						<tr class="ratings-level">
+							<td>
+								<button class="btn btn--ghost level-button" data-level="1"></button>
+							</td>
+							<td id="cell-below">
+								<ul>
+									<li>Does not do a fair share of the team's work. Delivers sloppy or incomplete work.</li>
+									<li>Misses deadlines. Is late, unprepared, or absent for team meetings.</li>
+									<li>Does not assist teammates.</li>
+									<li>Quits if the work becomes difficult.</li>
+								</ul>
+							</td>
+						</tr>
+					</table>
+				</div>
 				<!-- Citation: Loughry, M. L., Ohland, M. L., & Woehr, D. J. (2014).  Assessing teamwork skills for assurance of learning using CATME Team Tools.  <em>Journal of Marketing Education</em>, 36(1), 5-19. -->
+				<div id="comment-view">
+					<textarea id="write-comment"></textarea>
+					<button id="submit-comment" class="btn btn--primary">Save</button>
+				</div>
 			</div>
 
 			<div id="done-view">
