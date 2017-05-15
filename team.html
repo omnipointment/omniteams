@@ -61,6 +61,11 @@
 				float: left;
 			}
 
+			.btn--center {
+				display: block;
+				margin: 10px auto;
+			}
+
 		</style>
 	</head>
 	<body class="body body--landing">
@@ -182,6 +187,21 @@
 							</div>
 							<div class="toggle__section toggle__expandable" data-hook="content">
 								<div id="meetings-container"></div>
+							</div>
+						</div>
+
+						<div class="toggle is-expanded">
+							<div class="toggle__section link" data-hook="toggle">
+								<div class="toggle__header">
+									<h2 class="u-textLeft" data-hook="header">Peer Feedback</h2>
+								</div>
+								<div class="toggle__chevron"></div>
+							</div>
+							<div class="toggle__section toggle__expandable" data-hook="content">
+								<div id="feedback-container">
+									<p class="u-textLeft">This anonymous peer feedback survey will help your teammates identify their strengths and areas for improvement when working in teams. After everyone has completed the survey, you will get personalized feedback!</p>
+									<button id="rate-button" class="btn btn--center btn--primary">Rate Teammates</button>
+								</div>
 							</div>
 						</div>
 

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Omnipointment</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="keywords" content="omnipointment, schedule, availability, team, meet, doodle, when2meet, meeting">
+		<meta name="description" content="Easily find the best time for your team to meet.">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="mobile-web-app-capable" content="yes">
+		<meta property="og:title" content="Omnipointment">
+		<meta property="og:description" content="Easily find the best time for your team to meet.">
+		<meta property="og:image" content="https://www.omnipointment.com/img/logo.png">
+		<meta property="fb:app_id" content="1538554079792604">
+		<link rel="icon" sizes="192x192" href="/favicon.ico">
+		<link rel="image_src" href="img/purple-long-logo.png">
+		<link rel="manifest" href="/manifest.webapp">
+		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+		<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:400,700,900">
+		<link rel="stylesheet" href="/css/main.css">
+		<link rel="stylesheet" href="/css/vendor.css">
+		<script type="text/javascript" src="/js/promise.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/3.7.5/firebase.js"></script>
+		<script type="text/javascript" src="/js/vex.combined.min.js"></script>
+		<script type="text/javascript">vex.defaultOptions.className = 'vex-theme-wireframe';</script>
+		<link rel="stylesheet" type="text/css" href="/css/vex.css">
+		<link rel="stylesheet" type="text/css" href="/css/vex-theme-wireframe.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+		<link rel="stylesheet" type="text/css" href="/css/team.css">
+		<script type="text/javascript" src="/js/clipboard.js"></script>
+		<script type="text/javascript" src="/js/prometheus.js"></script>
+		<script type="text/javascript" src="/js/xdLocalStorage.min.js"></script>
+		<script type="text/javascript" src="/js/wineglassauth.js"></script>
+		<style type="text/css">
+
+			#page {
+				/*background: url('img/purple-triagmonds.png') !important*/
+				padding: 35px 20px;
+			}
+
+			.landingSection--newsroom a {
+				min-height: 0 !important;
+			}
+
+			table {
+				margin: 0 auto;
+			}
+
+			tr td:nth-child(1) {
+				/*width: 200px;*/
+			}
+
+			p {
+				margin: 10px 0;
+			}
+
+			tr.ratings-level {
+				border-top: 2px solid rgba(230, 230, 230, 0.5);
+			}
+
+			tr.ratings-level:hover {
+				background: rgba(230, 230, 230, 0.5);
+			}
+
+			tr.ratings-level td {
+				padding: 5px 10px;
+			}
+
+			.bold {
+				font-weight: bold;
+			}
+
+			p.citation {
+				margin: 20px auto;
+				opacity: 0.5;
+			}
+
+			#current-teammate {
+				text-align: center;
+				margin: 10px auto;
+				margin-bottom: 0;
+			}
+
+			#previous-teammate:hover {
+				cursor: pointer;
+			}
+
+			.level-button {
+				margin: 0;
+				padding: 0;
+				width: 30px;
+				height: 30px;
+				border-radius: 15px;
+			}
+
+			.level-button:hover {
+				background: #2D0A58;
+			}
+
+			#ratings-view, #done-view {
+				display: none;
+			}
+
+			#progress-holder, #progress-wrapper, #progress-slider {
+				line-height: 30px;
+			}
+
+			#progress-holder {
+				text-align: center;
+				margin: 20px auto;
+				height: 30px;
+				line-height: 30px;
+			}
+
+			#progress-wrapper, #progress-slider {
+				height: 20px;
+				vertical-align: middle;
+			}
+
+			#progress-wrapper {
+				display: inline-block;
+				width: 250px;
+				margin: 0 10px;
+				background: rgba(230, 230, 230, 0.5);
+				overflow: hidden;
+			}
+
+			#progress-slider {
+				background: #2D0A58;
+			}
+
+			#comment-view {
+				display: block;
+				width: 350px;
+				margin: 10px auto;
+			}
+
+			textarea {
+				border: 2px solid #2D0A58;
+				width: 100%;
+				display: block;
+				margin: 20px auto;
+				padding: 10px;
+				line-height: 20px;
+				min-height: 80px;
+			}
+
+		</style>
+	</head>
+	<body class="body body--landing">
+
+		<header class="fixed" data-hook="header" id="header">
+			<div class="row row--condensed valign u-fullHeight">
+				<div class="col col--onefourth u-fullHeight u-textLeft"></div>
+				<div class="col col--onehalf valign__centered">
+					<div class="logo logo--white u-centerBlock" data-hook="logo">
+						<a onclick="window.location = window.location.origin + '/team.html' + window.location.search;" class="u-fullHeight u-fullWidth u-centerBlock"></a>
+					</div>
+				</div>
+				<div class="col col--onefourth valign__centered"></div>
+			</div>
+		</header>
+
+		<section id="page">
+
+			<div id="progress-holder">
+				<span class="bold">Progress:</span> <div id="progress-wrapper"><div id="progress-slider"></div></div> <span class="rating-progress">0%</span>
+			</div>
+
+			<div id="category-view">
+				<p>You will now rate your team on:</p>
+				<h1 class="rating-category"></h1>
+				<button id="category-ready" class="btn btn--center btn--primary">Go</button>
+			</div>
+
+			<div id="ratings-view">
+				<h1 class="rating-category">Contributing to the Team's Work</h1>
+				<!--<p>How is <span class="rating-name bold">Vinesh Kannan</span> at <span class="rating-category bold">Contributing to the Team's Work</span>?</p>-->
+				<p id="rating-question"></p>
+				<div id="current-teammate"></div>
+				<p><span id="previous-teammate" class="bold">Go back to previous teammate</span> | Teammate <span class="rating-category-progress">0 out of 0</span></p>
+				<div id="behavior-view">
+					<table>
+						<tr class="ratings-level">
+							<td>
+								<button class="btn btn--ghost level-button" data-level="5"></button>
+							</td>
+							<td id="cell-exceeds">
+								<ul>
+									<li>Does more or higher-quality work than expected.</li>
+									<li>Makes important contributions that improve the team's work.</li>
+									<li>Helps to complete the work of teammates who are having difficulty.</li>
+								</ul>
+							</td>
+						</tr>
+						<tr class="ratings-level">
+							<td>
+								<button class="btn btn--ghost level-button" data-level="4"></button>
+							</td>
+							<td>
+								<ul>
+									<li>Demonstrates behaviors described in the row just above and just below.</li>
+								</ul>
+							</td>
+						</tr>
+						<tr class="ratings-level">
+							<td>
+								<button class="btn btn--ghost level-button" data-level="3"></button>
+							</td>
+							<td id="cell-meets">
+								<ul>
+									<li>Completes a fair share of the team's work with acceptable quality.</li>
+									<li>Keeps commitments and completes assignments on time.</li>
+									<li>Fills in for teammates when it is easy or important</li>
+								</ul>
+							</td>
+						</tr>
+						<tr class="ratings-level">
+							<td>
+								<button class="btn btn--ghost level-button" data-level="2"></button>
+							</td>
+							<td>
+								<ul>
+									<li>Demonstrates behaviors described in the row just above and just below.</li>
+								</ul>
+							</td>
+						</tr>
+						<tr class="ratings-level">
+							<td>
+								<button class="btn btn--ghost level-button" data-level="1"></button>
+							</td>
+							<td id="cell-below">
+								<ul>
+									<li>Does not do a fair share of the team's work. Delivers sloppy or incomplete work.</li>
+									<li>Misses deadlines. Is late, unprepared, or absent for team meetings.</li>
+									<li>Does not assist teammates.</li>
+									<li>Quits if the work becomes difficult.</li>
+								</ul>
+							</td>
+						</tr>
+					</table>
+				</div>
+				<!-- Citation: Loughry, M. L., Ohland, M. L., & Woehr, D. J. (2014).  Assessing teamwork skills for assurance of learning using CATME Team Tools.  <em>Journal of Marketing Education</em>, 36(1), 5-19. -->
+				<div id="comment-view">
+					<textarea id="write-comment"></textarea>
+					<button id="submit-comment" class="btn btn--primary">Save</button>
+				</div>
+			</div>
+
+			<div id="done-view">
+				<h1 id="rating-submission">Saving Ratings...</h1>
+			</div>
+
+		</section>
+
+		<script type="text/javascript" src="./js/categories.js"></script>
+		<script type="text/javascript" src="ratings.js"></script>
+
+	</body>
+</html>
