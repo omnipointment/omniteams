@@ -391,7 +391,8 @@ let progressSlider = document.getElementById('progress-slider');
 let prometheus = Prometheus(OmniFirebaseConfig);
 	prometheus.logon(USER_ID);
 	prometheus.save({
-		type: 'OPEN_RATINGS'
+		type: 'OPEN_RATINGS',
+		tid: TEAM_ID
 	});
 
 let initRatings = (uid) => {
@@ -420,7 +421,8 @@ let finishRatings = (ratings) => {
 	}).catch(displayError);
 
 	prometheus.save({
-		type: 'FINISH_RATINGS'
+		type: 'FINISH_RATINGS',
+		tid: TEAM_ID
 	});
 
 }
