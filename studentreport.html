@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Omnipointment</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="keywords" content="omnipointment, schedule, availability, team, meet, doodle, when2meet, meeting">
+		<meta name="description" content="Easily find the best time for your team to meet.">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="mobile-web-app-capable" content="yes">
+		<meta property="og:title" content="Omnipointment">
+		<meta property="og:description" content="Easily find the best time for your team to meet.">
+		<meta property="og:image" content="https://www.omnipointment.com/img/logo.png">
+		<meta property="fb:app_id" content="1538554079792604">
+		<link rel="icon" sizes="192x192" href="/favicon.ico">
+		<link rel="image_src" href="img/purple-long-logo.png">
+		<link rel="manifest" href="/manifest.webapp">
+		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+		<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:400,700,900">
+		<link rel="stylesheet" href="/css/main.css">
+		<link rel="stylesheet" href="/css/vendor.css">
+		<script type="text/javascript" src="/js/promise.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/3.7.5/firebase.js"></script>
+		<script type="text/javascript" src="/js/vex.combined.min.js"></script>
+		<script type="text/javascript">vex.defaultOptions.className = 'vex-theme-wireframe';</script>
+		<link rel="stylesheet" type="text/css" href="/css/vex.css">
+		<link rel="stylesheet" type="text/css" href="/css/vex-theme-wireframe.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+		<link rel="stylesheet" type="text/css" href="/css/team.css">
+		<script type="text/javascript" src="/js/clipboard.js"></script>
+		<script type="text/javascript" src="/js/prometheus.js"></script>
+		<script type="text/javascript" src="/js/xdLocalStorage.min.js"></script>
+		<script type="text/javascript" src="/js/wineglassauth.js"></script>
+		<style type="text/css">
+
+			#page {
+				/*background: url('img/purple-triagmonds.png') !important*/
+				padding: 35px 20px;
+			}
+
+			.landingSection--newsroom a {
+				min-height: 0 !important;
+			}
+
+			#section-student {
+				margin: 20px auto;
+				text-align: center;
+			}
+
+			#section-student .member {
+				display: inline-block;
+			}
+
+			h1.report-heading {
+				padding: 10px;
+				text-transform: uppercase;
+				font-weight: bold;
+				text-align: left;
+				border-bottom: 2px solid rgba(230, 230, 230, 0.5);
+			}
+
+			/* RATINGS */
+
+			.legend {
+				text-align: center;
+			}
+
+			.legend-box {
+				margin: 5px;
+				padding: 5px;
+				color: white !important;
+				display: inline-block;
+			}
+
+			.legend-explain {
+				background: black;
+				color: white !important;
+				position: absolute;
+				margin-top: -80px;
+				padding: 10px;
+				width: 200px;
+				z-index: 10;
+				display: none;
+			}
+
+			.legend-box:hover .legend-explain {
+				display: block;
+			}
+
+			.category {
+				padding: 10px !important;
+			}
+
+			.category-label, .category-ratings {
+				text-align: center;
+				padding: 10px;
+			}
+
+			.category-label {
+				line-height: 20px;
+				vertical-align: middle;
+			}
+
+			.category-ratings {
+				padding-top: 20px;
+				height: 100px;
+				vertical-align: bottom;
+			}
+
+			.category-bar {
+				display: inline-block;
+				text-align: center;
+				vertical-align: bottom;
+				width: 25%;
+				height: 0;
+				padding: 5px;
+				background: #1A1A1A;
+				color: white;
+			}
+			
+			.bar-hidden {
+				display: inline-block;
+				width: 0;
+				height: 100%;
+			}
+
+			.bar-value {
+				height: 20px;
+				line-height: 20px;
+				margin-top: -30px;
+				font-weight: bold;
+			}
+
+			.bar-self {
+				background: #FC5D37; /*#93E630;*/
+				color: #FC5D37;
+			}
+
+			.bar-peer {
+				background: #02A9ED;
+				color: #02A9ED;
+			}
+
+			.bar-team {
+				background: #4F3173;
+				color: #4F3173;
+			}
+
+			/* COMMENTS */
+
+			.comment {
+				padding: 10px !important;
+			}
+
+			.comment-message {
+				background: rgba(230, 230, 230, 0.5);
+				text-align: left;
+				padding: 10px;
+				margin: 10px;
+			}
+
+			.comment-message span {
+				background: #2D0A58;
+				color: white;
+				padding: 2.5px 5px;
+				margin-right: 5px;
+				border-radius: 2.5px;
+			}
+
+		</style>
+	</head>
+	<body class="body body--landing">
+
+		<header class="fixed" data-hook="header" id="header">
+			<div class="row row--condensed valign u-fullHeight">
+				<div class="col col--onefourth u-fullHeight u-textLeft"></div>
+				<div class="col col--onehalf valign__centered">
+					<div class="logo logo--white u-centerBlock" data-hook="logo">
+						<a onclick="window.location = window.location.origin + '/team.html' + window.location.search;" class="u-fullHeight u-fullWidth u-centerBlock"></a>
+					</div>
+				</div>
+				<div class="col col--onefourth valign__centered"></div>
+			</div>
+		</header>
+
+		<section id="page">
+
+			<h1>Student Collaboration Report</h1>
+
+			<div id="section-student"></div>
+
+			<h1 class="report-heading">Ratings</h1>
+
+			<div class="legend">
+				<div class="legend-box bar-self">
+					<div>Self Rating</div>
+					<div class="legend-explain">Your rating of yourself.</div>
+				</div>
+				<div class="legend-box bar-peer">
+					<div>Peer Rating</div>
+					<div class="legend-explain">Average of how your teammates rated you.</div>
+				</div>
+				<div class="legend-box bar-team">
+					<div>Team Average</div>
+					<div class="legend-explain">Average rating for your whole team.</div>
+				</div>
+			</div>
+
+			<div id="section-ratings" class="row row--condensed">
+				<!--<div class="category col col--onethird">
+					<div class="category-ratings">
+						<div class="category-bar bar-self" style="height:80%;">4.0</div>
+						<div class="category-bar bar-peer" style="height:64%;">3.2</div>
+						<div class="category-bar bar-team" style="height:90%;">4.5</div>
+						<div class="bar-hidden"></div>
+					</div>
+					<div class="category-label">Contributing to the Team's Work</div>
+				</div>-->
+			</div>
+
+			<h1 class="report-heading">Feedback</h1>
+
+			<div id="section-feedback"></div>
+
+			<h1 class="report-heading">Areas for Improvement</h1>
+
+			<p class="u-textLeft">By the next team evaluation, you should</p>
+			<ul id="section-improvement"></div>
+
+			<h1 class="report-heading">Careers</h1>
+
+			<div id="section-improvement">
+				
+				<p class="u-textLeft">Coming Soon... In Fall 2017 collaboration reports will show you what areas of teamwork to improve in to become a better candidate for your dream career!</p>
+
+			</div>
+
+		</section>
+
+		<script type="text/javascript" src="./js/categories.js"></script>
+		<script type="text/javascript" src="./js/studentreport.js"></script>
+
+	</body>
+</html>
