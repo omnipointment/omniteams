@@ -1,26 +1,3 @@
-<!--<!DOCTYPE html>
-<html>
-	<head>
-		<title>Omnipointment</title>
-	</head>
-	<body>
-		<script type="text/javascript">
-
-			/*var URL = 'https://www.omnipointment.com/';
-
-			if(document.location.search){
-				document.location = URL + 'promo' + document.location.search;
-			}
-			else{
-				document.location = URL;
-			}*/
-
-			document.location = document.location.origin + '/course.html' + document.location.search;
-
-		</script>
-	</body>
-</html>-->
-
 <!DOCTYPE html>
 <html>
 	<head>
@@ -74,7 +51,7 @@
 				<div class="col col--onefourth u-fullHeight u-textLeft"></div>
 				<div class="col col--onehalf valign__centered">
 					<div class="logo logo--white u-centerBlock" data-hook="logo">
-						<a onclick="window.location = window.location.origin + window.location.pathname;" class="u-fullHeight u-fullWidth u-centerBlock"></a>
+						<a onclick="window.location = window.location.origin + '/team.html' + window.location.search;" class="u-fullHeight u-fullWidth u-centerBlock"></a>
 					</div>
 				</div>
 				<div class="col col--onefourth valign__centered"></div>
@@ -82,49 +59,12 @@
 		</header>
 
 		<section id="page">
-			<div>
-				<button class="btn btn--center btn--primary" onclick="goToCourse();">Join a Course</button>
-				<button class="btn btn--center btn--primary" onclick="goToTeams();">My Teams</button>
-			</div>
+
+			<h1>Joining Course</h1>
+
 		</section>
 
-		<script type="text/javascript">
-
-			function getQueryParams(qs) {
-				qs = qs.split('+').join(' ');
-				var params = {},
-					tokens,
-					re = /[?&]?([^=]+)=([^&]*)/g;
-				while (tokens = re.exec(qs)) {
-					params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
-				}
-				return params;
-			}
-				
-			function goToCourse(){
-				document.location = document.location.origin + '/course.html' + document.location.search;
-			}
-
-			function goToTeams(){
-				document.location = document.location.origin + '/team.html' + document.location.search;
-			}
-
-			function goToSignUp(){
-				document.location = document.location.origin + '/signup.html' + document.location.search;
-			}
-
-			let params = getQueryParams(document.location.search);
-			if(params.usc){
-				goToSignUp();
-			}
-			else if(params.team){
-				goToTeams();
-			}
-			else if(params.code){
-				goToCourse();
-			}
-
-		</script>
+		<script type="text/javascript" src="./js/signup.js"></script>
 
 	</body>
 </html>
