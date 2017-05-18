@@ -146,25 +146,64 @@
 				color: #4F3173;
 			}
 
-			/* COMMENTS */
+			/* CONTRIBUTIONS */
 
-			.comment {
+			.team {
 				padding: 10px !important;
 			}
 
-			.comment-message {
-				background: rgba(230, 230, 230, 0.5);
-				text-align: left;
-				padding: 10px;
-				margin: 10px;
+			.team:nth-child(4n) {
+				clear: left;
 			}
 
-			.comment-message span {
-				background: #2D0A58;
+			.member-holder .member {
+				width: calc(100% - 60px;);
+				overflow: hidden;
+			}
+
+			.member-holder .member-contribution {
+				display: inline-block;
+				width: 40px;
+				height: 40px;
+				line-height: 40px;
+				margin: 10px;
+				text-align: center;
+				vertical-align: top;
+			}
+
+			.member-holder .member {
+				display: inline-block;
+			}
+
+			.strength :nth-child(1) {
+				color: #93E630;
+			}
+			.strength :nth-child(2) {
+				background: #93E630;
+			}
+
+			.weakness :nth-child(1) {
+				color: #FC5D37;
+			}
+
+			.weakness :nth-child(2) {
+				background: #FC5D37;
+			}
+
+			.team-sw-holder {
+				text-align: center;
+				margin-bottom: 20px;
+			}
+
+			.team-sw-holder :nth-child(1) {
+				font-size: 12px;
+				font-weight: bold;
+				padding: 10px;
+			}
+
+			.team-sw-holder :nth-child(2) {
+				padding: 5px;
 				color: white;
-				padding: 2.5px 5px;
-				margin-right: 5px;
-				border-radius: 2.5px;
 			}
 
 		</style>
@@ -184,76 +223,18 @@
 		</header>
 
 		<section id="page">
-
-			<h1>Student Collaboration Report</h1>
-
-			<div id="section-student"></div>
-
-			<h1 class="report-heading">Ratings</h1>
-
-			<div class="legend">
-				<div class="legend-box bar-self">
-					<div>Self Rating</div>
-					<div class="legend-explain">Your rating of yourself.</div>
-				</div>
-				<div class="legend-box bar-peer">
-					<div>Peer Rating</div>
-					<div class="legend-explain">Average of how your teammates rated you.</div>
-				</div>
-				<div class="legend-box bar-team">
-					<div>Team Average</div>
-					<div class="legend-explain">Average rating for your whole team.</div>
-				</div>
-			</div>
-
-			<div id="section-ratings" class="row row--condensed">
-				<!--<div class="category col col--onethird">
-					<div class="category-ratings">
-						<div class="category-bar bar-self" style="height:80%;">4.0</div>
-						<div class="category-bar bar-peer" style="height:64%;">3.2</div>
-						<div class="category-bar bar-team" style="height:90%;">4.5</div>
-						<div class="bar-hidden"></div>
-					</div>
-					<div class="category-label">Contributing to the Team's Work</div>
-				</div>-->
-			</div>
-
-			<h1 class="report-heading">Feedback</h1>
-
-			<div id="section-feedback"></div>
-
-			<h1 class="report-heading">Areas for Improvement</h1>
-
-			<div class="row row--condensed">
-				<div class="col col--onethird-sm">
-					<p class="u-textLeft">We analyzed some ways for you to become a stronger member of your team. Strive to be the kind of person who:</p>
-				</div>
-				<div class="col col--twothirds-sm">
-					<div id="section-improvement" class="row row--condensed"></div>
-				</div>
-			</div>
 			
+			<h1 class="report-heading">Teams</h1>
 
-			<h1 class="report-heading">Careers</h1>
+			<p>Members in each team are sorted by their ratings for Contributing to the Team's Work (max: 100).</p>
 
-			<div class="row row--condensed">
-				<div class="col col--onehalf-sm">
-					<p class="u-textLeft">Coming Soon... In Fall 2017 collaboration reports will show you what areas of teamwork to improve in to become a better candidate for your dream career!</p>
-				</div>
-				<div class="col col--onehalf-sm">
-					<p>Are you interested in any of these careers?</p>
-					<div id="section-career-votes"></div>
-				</div>
-			</div>
-				
-
-			</div>
+			<div id="section-teams" class="row row--condensed"></div>
 
 		</section>
 
 		<script type="text/javascript" src="./js/categories.js"></script>
 		<script type="text/javascript" src="./js/stats.js"></script>
-		<script type="text/javascript" src="./js/studentreport.js"></script>
+		<script type="text/javascript" src="./js/classreport.js"></script>
 
 	</body>
 </html>

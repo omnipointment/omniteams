@@ -128,6 +128,11 @@ function getRatingsList(tid, inRange){
 				return val[rid];
 			}).filter(rate => {
 				return rate.timestamp < range.to && rate.timestamp > range.from;
+			}).map(rate => {
+				if(rate.level){
+					rate.level = parseFloat(rate.level);
+				}
+				return rate;
 			});
 			resolve(list);
 		}).catch(reject);
@@ -150,69 +155,6 @@ function getQueryParams(qs) {
 		params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
 	}
 	return params;
-}
-
-function initCategoryMap(callback){
-	let res = {};
-	CATEGORY_LIST.forEach(category => {
-		if(category.type === 'behavior'){
-			if(callback){
-				res[category.id] = callback(category);
-			}
-			else{
-				res[category.id] = {};
-			}
-		}
-	});
-	return res;
-}
-
-function initCategoryList(){
-	return CATEGORY_LIST.filter(category => {
-		return category.type === 'behavior';
-	}).map(category => {
-		return category.id;
-	});
-}
-
-function selectFromList(list, params){
-	return list.filter(item => {
-		let include = true;
-		for(let tag in params){
-			if(item[tag] !== params[tag]){
-				include = false;
-			}
-		}
-		return include;
-	});
-}
-
-function averageList(list){
-	let sum = 0;
-	list.forEach(item => {
-		sum += item;
-	});
-	let avg = sum / list.length;
-	return avg;
-}
-
-function getWrappedIndex(list, index){
-	var idx = index % list.length;
-	return idx;
-}
-
-function shuffleWithSeed(list, seed){
-	var seed = seed.toLowerCase();
-	var alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
-	var newList = [];
-	while(list.length > 0){
-		var sidx = getWrappedIndex(seed, newList.length);
-		var letter = seed[sidx];
-		var aidx = getWrappedIndex(list, alphabet.indexOf(letter));
-		var nextItem = list.splice(aidx, 1)[0];
-		newList.push(nextItem);
-	}
-	return newList;
 }
 
 /* Specific Code */
@@ -259,18 +201,6 @@ function renderSelfComment(comment){
 	return div;
 }
 
-function normalizeRatings(ratings, range){
-	return ratings.map(rate => {
-		if(rate.level){
-			let level = parseFloat(rate.level);
-			let per = (level - range.old[0]) / (range.old[1] - range.old[0]);
-			let normalized = (per * (range.new[1] - range.new[0])) + range.new[0];
-			rate.level = normalized;
-		}
-		return rate;
-	});
-}
-
 /* Main Routine */
 
 //let USER_ID = '568eb4e705d347a26a94ecc4';
@@ -283,7 +213,7 @@ let TEAM_ID = params.team || '-KkH6b_A054B7SSstMEA';
 let prometheus = Prometheus(OmniFirebaseConfig);
 	prometheus.logon(USER_ID);
 	prometheus.save({
-		type: 'OPEN_RATINGS',
+		type: 'VIEW_STUDENT_REPORT',
 		tid: TEAM_ID
 	});
 
@@ -416,10 +346,20 @@ let mainReport = (inRatings, team) => {
 
 		let actions = improveCategory.levels.exceeds;
 		actions.forEach(action => {
-			let p = document.createElement('p');
+			let p = document.createElement('div');
+				p.classList.add('col', 'col--onethird-sm');
 				p.innerText = action;
 			improvementSection.appendChild(p);
 		});
+
+		console.log('OUTLIER ANALYSIS');
+
+		let confidenceMap = initCategoryMap(category => {
+			let data = assessOutlier(ratings, category.id, USER_ID);
+			return data;
+		});
+
+		console.log(confidenceMap)
 
 
 

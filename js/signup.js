@@ -243,7 +243,7 @@ let main = (params) => {
 			}).catch(reject);
 		}).catch(reject);
 
-	});
+	}); 
 }
 
 let finish = (params) => {
