@@ -250,7 +250,12 @@ let renderUserContributionDiv = (user, opt) => {
 		div.classList.add('member-holder');
 	let contrib = document.createElement('div');
 		contrib.classList.add('member-contribution');
-		contrib.innerText = options.contribution;
+		if(!options.contribution){
+			contrib.innerText = '?';
+		}
+		else{
+			contrib.innerText = options.contribution;
+		}
 		if(options.style){
 			for(let sid in options.style){
 				contrib.style[sid] = options.style[sid];
@@ -297,26 +302,35 @@ let renderTeamDiv = (team, model, opt) => {
 		members.appendChild(p1);
 		Object.keys(team.users).map(uid => {
 			let user = team.users[uid];
+			user.contribution = false;
 			let sum = 0;
-			selectFromList(model.ratings, {
+			let toRatings = selectFromList(model.ratings, {
 				category: 'contibuting',
 				to: uid
-			}).forEach(rate => {
-				sum += rate.level;
 			});
-			user.contribution = sum;
+			if(toRatings.length > 0){
+				toRatings.forEach(rate => {
+					sum += rate.level;
+				});
+				user.contribution = sum;
+			}
 			return user;
 		}).sort((a, b) => {
 			return b.contribution - a.contribution;
 		}).forEach(user => {
-			let percentile = (user.contribution / max) * 100;
-			userOption.contribution = percentile.toFixed(1);
+			if(user.contribution){
+				let percentile = (user.contribution / max) * 100;
+				userOption.contribution = percentile.toFixed(1);
+			}
+			else{
+				userOption.contribution = user.contribution;
+			}
 			let userDiv = renderUserContributionDiv(user, userOption);
 			members.appendChild(userDiv);
 		});
 	div.appendChild(overview);
-	div.appendChild(swDiv);
 	div.appendChild(members);
+	div.appendChild(swDiv);
 	return div;
 }
 
@@ -413,7 +427,25 @@ let mainReport = (teamData) => {
 
 		let teamsSection = document.getElementById('section-teams');
 
-		teamData.forEach(data => {
+		teamData.map(data => {
+			data.order = 0;
+			let sum = 0;
+			let cr = selectFromList(data.ratings, {
+				category: 'contibuting'
+			});
+			if(cr.length === 0){
+				data.order = Infinity;
+			}
+			else{
+				cr.forEach(rate => {
+					sum += rate.level;
+				});
+				data.order = sum;
+			}
+			return data;
+		}).sort((a, b) => {
+			return a.order - b.order;
+		}).forEach(data => {
 			let model = getTeamModel(data);
 			let div = renderTeamDiv(data.team, model, {
 				classList: ['col', 'col--onethird-sm'],

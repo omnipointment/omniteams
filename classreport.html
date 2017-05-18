@@ -156,9 +156,9 @@
 				clear: left;
 			}
 
-			.member-holder .member {
-				width: calc(100% - 60px;);
-				overflow: hidden;
+			.member-holder .member:hover {
+				cursor: pointer;
+				opacity: 0.25;
 			}
 
 			.member-holder .member-contribution {
@@ -178,6 +178,7 @@
 			.strength :nth-child(1) {
 				color: #93E630;
 			}
+
 			.strength :nth-child(2) {
 				background: #93E630;
 			}
@@ -189,6 +190,10 @@
 			.weakness :nth-child(2) {
 				background: #FC5D37;
 			}
+
+			/*.team-sw-holder :nth-child(2) {
+				background: rgba(230, 230, 230, 0.5);
+			}*/
 
 			.team-sw-holder {
 				text-align: center;
@@ -226,7 +231,8 @@
 			
 			<h1 class="report-heading">Teams</h1>
 
-			<p>Members in each team are sorted by their ratings for Contributing to the Team's Work (max: 100).</p>
+			<p>Members in each team are sorted by their ratings for <span class="bold">Contributing to the Team's Work</span> (max: 100).</p>
+			<p>Click a student for more details.</p>
 
 			<div id="section-teams" class="row row--condensed"></div>
 

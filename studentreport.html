@@ -61,6 +61,10 @@
 
 			/* RATINGS */
 
+			.col--one {
+				padding: 0 15px;
+			}
+
 			.legend {
 				text-align: center;
 			}
@@ -167,6 +171,12 @@
 				border-radius: 2.5px;
 			}
 
+			.improve-item {
+				border-left: 4px solid #2D0A58;
+				padding: 5px;
+				margin: 10px 5px;
+			}
+
 		</style>
 	</head>
 	<body class="body body--landing">
@@ -189,64 +199,53 @@
 
 			<div id="section-student"></div>
 
-			<h1 class="report-heading">Ratings</h1>
-
-			<div class="legend">
-				<div class="legend-box bar-self">
-					<div>Self Rating</div>
-					<div class="legend-explain">Your rating of yourself.</div>
-				</div>
-				<div class="legend-box bar-peer">
-					<div>Peer Rating</div>
-					<div class="legend-explain">Average of how your teammates rated you.</div>
-				</div>
-				<div class="legend-box bar-team">
-					<div>Team Average</div>
-					<div class="legend-explain">Average rating for your whole team.</div>
-				</div>
-			</div>
-
-			<div id="section-ratings" class="row row--condensed">
-				<!--<div class="category col col--onethird">
-					<div class="category-ratings">
-						<div class="category-bar bar-self" style="height:80%;">4.0</div>
-						<div class="category-bar bar-peer" style="height:64%;">3.2</div>
-						<div class="category-bar bar-team" style="height:90%;">4.5</div>
-						<div class="bar-hidden"></div>
+			<div class="row row--condensed">
+				<div class="col col--one">
+					<h1 class="report-heading">Ratings</h1>
+					<div class="legend">
+						<div class="legend-box bar-self">
+							<div>Self Rating</div>
+							<div class="legend-explain">Your rating of yourself.</div>
+						</div>
+						<div class="legend-box bar-peer">
+							<div>Peer Rating</div>
+							<div class="legend-explain">Average of how your teammates rated you.</div>
+						</div>
+						<div class="legend-box bar-team">
+							<div>Team Average</div>
+							<div class="legend-explain">Average rating for your whole team.</div>
+						</div>
 					</div>
-					<div class="category-label">Contributing to the Team's Work</div>
-				</div>-->
+					<div id="section-ratings" class="row row--condensed"></div>
+				</div>
 			</div>
 
-			<h1 class="report-heading">Feedback</h1>
-
-			<div id="section-feedback"></div>
-
-			<h1 class="report-heading">Areas for Improvement</h1>
-
 			<div class="row row--condensed">
-				<div class="col col--onethird-sm">
+				<div class="col col--onehalf-sm">
+					<h1 class="report-heading">Feedback</h1>
+					<div id="section-feedback"></div>
+				</div>
+				<div class="col col--onehalf-sm">
+					<h1 class="report-heading">Growth</h1>
 					<p class="u-textLeft">We analyzed some ways for you to become a stronger member of your team. Strive to be the kind of person who:</p>
-				</div>
-				<div class="col col--twothirds-sm">
-					<div id="section-improvement" class="row row--condensed"></div>
+					<div id="section-improvement"></div>
 				</div>
 			</div>
-			
 
-			<h1 class="report-heading">Careers</h1>
 
 			<div class="row row--condensed">
-				<div class="col col--onehalf-sm">
-					<p class="u-textLeft">Coming Soon... In Fall 2017 collaboration reports will show you what areas of teamwork to improve in to become a better candidate for your dream career!</p>
+				<div class="col col--one">
+					<h1 class="report-heading">Careers</h1>
+					<div class="row row--condensed">
+						<div class="col col--onehalf-sm">
+							<p class="u-textLeft">Coming Soon... In Fall 2017 collaboration reports will show you what areas of teamwork to improve in to become a better candidate for your dream career!</p>
+						</div>
+						<div class="col col--onehalf-sm">
+							<p>Are you interested in any of these careers?</p>
+							<div id="section-career-votes"></div>
+						</div>
+					</div>
 				</div>
-				<div class="col col--onehalf-sm">
-					<p>Are you interested in any of these careers?</p>
-					<div id="section-career-votes"></div>
-				</div>
-			</div>
-				
-
 			</div>
 
 		</section>
