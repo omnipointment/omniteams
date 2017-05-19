@@ -123,11 +123,16 @@ function getRatingsList(tid, inRange){
 		let promises = [];
 		let ratingsRef = LabsDB.ref('omniteams/ratings/' + TEAM_ID);
 		ratingsRef.once('value', snap => {
-			let val = snap.val();
+			let val = snap.val() || {};
 			let list = Object.keys(val).map(rid => {
 				return val[rid];
 			}).filter(rate => {
 				return rate.timestamp < range.to && rate.timestamp > range.from;
+			}).map(rate => {
+				if(rate.level){
+					rate.level = parseFloat(rate.level);
+				}
+				return rate;
 			});
 			resolve(list);
 		}).catch(reject);
@@ -152,81 +157,37 @@ function getQueryParams(qs) {
 	return params;
 }
 
-function initCategoryMap(callback){
-	let res = {};
-	CATEGORY_LIST.forEach(category => {
-		if(category.type === 'behavior'){
-			if(callback){
-				res[category.id] = callback(category);
-			}
-			else{
-				res[category.id] = {};
-			}
-		}
-	});
-	return res;
-}
-
-function initCategoryList(){
-	return CATEGORY_LIST.filter(category => {
-		return category.type === 'behavior';
-	}).map(category => {
-		return category.id;
-	});
-}
-
-function selectFromList(list, params){
-	return list.filter(item => {
-		let include = true;
-		for(let tag in params){
-			if(item[tag] !== params[tag]){
-				include = false;
-			}
-		}
-		return include;
-	});
-}
-
-function averageList(list){
-	let sum = 0;
-	list.forEach(item => {
-		sum += item;
-	});
-	let avg = sum / list.length;
-	return avg;
-}
-
-function getWrappedIndex(list, index){
-	var idx = index % list.length;
-	return idx;
-}
-
-function shuffleWithSeed(list, seed){
-	var seed = seed.toLowerCase();
-	var alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
-	var newList = [];
-	while(list.length > 0){
-		var sidx = getWrappedIndex(seed, newList.length);
-		var letter = seed[sidx];
-		var aidx = getWrappedIndex(list, alphabet.indexOf(letter));
-		var nextItem = list.splice(aidx, 1)[0];
-		newList.push(nextItem);
-	}
-	return newList;
-}
-
 /* Specific Code */
 
-function toPercentString(value, max){
+let toPercentString = (value, max) => {
 	return ((value / max) * 100) + '%';
+}
+
+let getRatingStyle = (value, max) => {
+	let res = {
+		value: false,
+		height: false
+	}
+	if(value < 0){
+		res.value = '?'
+		res.height = '0%';
+	}
+	else{
+		res.value = value.toFixed(2);
+		res.height = toPercentString(value, max);
+	}
+	return res;
 }
 
 function renderCategoryRatings(category, values, max){
 	//let html = '<div class="category col col--onethird">'
+	let s = getRatingStyle(values.self, max);
+	let p = getRatingStyle(values.peer, max);
+	let t = getRatingStyle(values.team, max);
 	let html = '<div class="category-ratings">'
-			html += '<div class="category-bar bar-self" style="height:' + toPercentString(values.self, max) + ';"><div class="bar-value">' + values.self.toFixed(2) + '</div></div>'
-			html += '<div class="category-bar bar-peer" style="height:' + toPercentString(values.peer, max) + ';"><div class="bar-value">' + values.peer.toFixed(2) + '</div></div>'
-			html += '<div class="category-bar bar-team" style="height:' + toPercentString(values.team, max) + ';"><div class="bar-value">' + values.team.toFixed(2) + '</div></div>'
+			html += '<div class="category-bar bar-self" style="height:' + s.height + ';"><div class="bar-value">' + s.value + '</div></div>'
+			html += '<div class="category-bar bar-peer" style="height:' + p.height + ';"><div class="bar-value">' + p.value + '</div></div>'
+			html += '<div class="category-bar bar-team" style="height:' + t.height + ';"><div class="bar-value">' + t.value + '</div></div>'
 			html += '<div class="bar-hidden"></div>'
 		html += '</div>'
 		html += '<div class="category-label">' + category.name + '</div>'
@@ -242,7 +203,7 @@ function renderComment(comment){
 		//div.classList.add('comment', 'col', 'col--onehalf-sm');
 	let msg = document.createElement('div');
 		msg.classList.add('comment-message');
-		msg.innerText = comment;
+		msg.innerText = comment || '';
 		div.appendChild(msg);
 	return div;
 }
@@ -253,22 +214,12 @@ function renderSelfComment(comment){
 	let span = document.createElement('span');
 		span.innerText = 'Self Comment';
 	let text = child.childNodes[0];
+	if(text){
 		child.innerHTML = "";
 		child.appendChild(span);
 		child.appendChild(text);
+	}
 	return div;
-}
-
-function normalizeRatings(ratings, range){
-	return ratings.map(rate => {
-		if(rate.level){
-			let level = parseFloat(rate.level);
-			let per = (level - range.old[0]) / (range.old[1] - range.old[0]);
-			let normalized = (per * (range.new[1] - range.new[0])) + range.new[0];
-			rate.level = normalized;
-		}
-		return rate;
-	});
 }
 
 /* Main Routine */
@@ -283,7 +234,7 @@ let TEAM_ID = params.team || '-KkH6b_A054B7SSstMEA';
 let prometheus = Prometheus(OmniFirebaseConfig);
 	prometheus.logon(USER_ID);
 	prometheus.save({
-		type: 'OPEN_RATINGS',
+		type: 'VIEW_STUDENT_REPORT',
 		tid: TEAM_ID
 	});
 
@@ -324,36 +275,61 @@ let mainReport = (inRatings, team) => {
 		let feedbackSection = document.getElementById('section-feedback');
 		let improvementSection = document.getElementById('section-improvement');
 
-		let teamAverages = initCategoryMap(category => {
+		let teamAverages = false;
+		let selfRatings = false;
+		let peerRatings = false;
+		
+		teamAverages = initCategoryMap(category => {
 			let list = selectFromList(ratings, {
 				category: category.id
-			}).map(rate => parseFloat(rate.level));
-			let avg = averageList(list);
+			}).map(rate => rate.level);
+			let avg = -1;
+			if(list.length > 0){
+				avg = averageList(list);
+			}
 			return avg;
 		});
 
-		let selfRatings = initCategoryMap(category => {
+		selfRatings = initCategoryMap(category => {
 			let rate = selectFromList(ratings, {
 				category: category.id,
 				from: USER_ID,
 				to: USER_ID
 			})[0];
-			let level = parseFloat(rate.level);
+			let level = -1;
+			if(rate){
+				level = rate.level;
+			}
 			return level;
 		});
 
-		let peerRatings = initCategoryMap(category => {
+		peerRatings = initCategoryMap(category => {
 			let list = selectFromList(ratings, {
 				category: category.id,
 				to: USER_ID
 			}).filter(rate => {
 				return rate.from !== USER_ID;
-			}).map(rate => parseFloat(rate.level));
-			let avg = averageList(list);
+			}).map(rate => rate.level);
+			let avg = -1;
+			if(list.length > 0){
+				avg = averageList(list);
+			}
 			return avg;
 		});
 
-		renderUserDiv(studentSection, team.users[USER_ID]);
+		let ratingsFrom = {};
+		ratings.forEach(rate => {
+			ratingsFrom[rate.from] = true;
+		});
+		let totalRatingsFrom = Object.keys(ratingsFrom).length;
+		let max = MAX_RATING * totalRatingsFrom;
+		let rsp = document.createElement('p');
+			rsp.innerText = totalRatingsFrom + '/' + Object.keys(team.users).length + ' of your teammates submitted ratings.'
+
+		let userDiv = document.createElement('div');
+		studentSection.appendChild(userDiv);
+		studentSection.appendChild(rsp);
+		renderUserDiv(userDiv, team.users[USER_ID]);
 
 		CATEGORY_LIST.filter(category => category.type === 'behavior').forEach(category => {
 			let div = renderCategoryRatings(category, {
@@ -372,14 +348,22 @@ let mainReport = (inRatings, team) => {
 		let comments = selectFromList(ratings, {
 			category: 'comment',
 			to: USER_ID
-		}).filter(rate => rate.from !== USER_ID).map(rate => rate.comment);
-		let selfCommentDiv = renderSelfComment(selfComment.comment);
-			feedbackSection.appendChild(selfCommentDiv);
-		let shuffled = shuffleWithSeed(comments, 'omnipointment');
-		shuffled.forEach(comment => {
-			let div = renderComment(comment);
+		}).filter(rate => rate.from !== USER_ID && rate.comment).map(rate => rate.comment);
+		if(selfComment){
+			let selfCommentDiv = renderSelfComment(selfComment.comment);
+				feedbackSection.appendChild(selfCommentDiv);
+		}
+		if(!selfComment && comments.length === 0){
+			let div = renderComment('No comments to show.');
 			feedbackSection.appendChild(div);
-		});
+		}
+		else{
+			let shuffled = shuffleWithSeed(comments, 'omnipointment');
+			shuffled.forEach(comment => {
+				let div = renderComment(comment);
+				feedbackSection.appendChild(div);
+			});
+		}
 
 		let improvementMap = initCategoryMap(category => {
 			let squaresSum = 0;
@@ -394,8 +378,10 @@ let mainReport = (inRatings, team) => {
 					from: uid,
 					to: uid
 				})[0];
-				let diff = parseFloat(theyYou.level) - parseFloat(theySelf.level);
-				squaresSum += (diff * Math.abs(diff))
+				if(theyYou && theySelf){
+					let diff = parseFloat(theyYou.level) - parseFloat(theySelf.level);
+					squaresSum += (diff * Math.abs(diff))
+				}
 			}
 			return squaresSum;
 		});
@@ -416,15 +402,22 @@ let mainReport = (inRatings, team) => {
 
 		let actions = improveCategory.levels.exceeds;
 		actions.forEach(action => {
-			let p = document.createElement('p');
+			let p = document.createElement('div');
+				p.classList.add('improve-item');
 				p.innerText = action;
 			improvementSection.appendChild(p);
 		});
 
+		console.log('OUTLIER ANALYSIS');
 
+		let confidenceMap = initCategoryMap(category => {
+			let data = assessOutlier(ratings, category.id, USER_ID);
+			return data;
+		});
+
+		console.log(confidenceMap)
 
 		console.log(improvementMap)
-
 
 		console.log(team);
 		console.log(ratings);
