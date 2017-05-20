@@ -53,12 +53,14 @@ function getTeam(tid){
 	});	
 }
 
+const MISSING_PICTURE = 'http://vingkan.github.io/omnipointment/img/empty-user-img.png';
+
 function renderUserDiv(holder, user){
 	holder.innerHTML = '';
 	let div = document.createElement('div');
 		div.classList.add('member');
 	let pic = document.createElement('div');
-		pic.style.background = 'url("' + user.picture + '")'
+		pic.style.background = 'url("' + user.picture || false + '")'
 	let name = document.createElement('div');
 		name.innerText = user.name;
 		div.appendChild(pic);
@@ -72,6 +74,9 @@ function getUser(uid){
 			var ref = OmniDB.ref('prometheus/users/' + uid + '/profile');
 			ref.once('value', snap => {
 				var val = snap.val();
+				if(!val.picture){
+					val.picture = MISSING_PICTURE;
+				}
 				resolve(val);
 			}).catch(reject);
 		}

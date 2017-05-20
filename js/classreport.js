@@ -53,6 +53,8 @@ function getTeam(tid){
 	});	
 }
 
+const MISSING_PICTURE = 'http://vingkan.github.io/omnipointment/img/empty-user-img.png';
+
 function renderUserDiv(inUser, opt){
 	let options = opt || {};
 	let user = inUser;
@@ -101,6 +103,9 @@ function getUser(uid){
 			var ref = OmniDB.ref('prometheus/users/' + uid + '/profile');
 			ref.once('value', snap => {
 				var val = snap.val();
+				if(!val.picture){
+					val.picture = MISSING_PICTURE;
+				}
 				resolve(val);
 			}).catch(reject);
 		}
@@ -318,7 +323,7 @@ let renderTeamDiv = (team, model, opt) => {
 		}).sort((a, b) => {
 			return b.contribution - a.contribution;
 		}).forEach(user => {
-			if(user.contribution){
+			if(user.contribution || user.contribution === 0){
 				let percentile = (user.contribution / max) * 100;
 				userOption.contribution = percentile.toFixed(1);
 			}
