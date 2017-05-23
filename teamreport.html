@@ -229,10 +229,15 @@
 
 			.rating-holder {
 				margin-bottom: 30px;
+				padding: 10px !important;
+			}
+
+			.rating-holder .rating-graph {
+				padding: 10px 15px;
 			}
 
 			.bar-horizontal {
-
+				font-size: 0;
 			}
 
 			.bar-horizontal .bar-label, .bar-horizontal .bar-holder {
@@ -243,17 +248,27 @@
 			}
 
 			.bar-horizontal .bar-label {
-				width: 20%;
+				width: 25%;
+				font-size: 15px;
 			}
 
 			.bar-horizontal .bar-holder {
 				width: 75%;
+				padding-right: 40px;
 			}
 
 			.bar-horizontal .bar-holder .bar-graph {
 				height: 10px;
 				padding: 2.5px;
 				margin: 5px;
+			}
+
+			.bar-horizontal .bar-holder .bar-graph .bar-value {
+				position: absolute;
+				margin-top: -7.5px;
+				display: inline-block;
+				right: 20px;
+				font-size: 15px;
 			}
 
 		</style>
@@ -304,6 +319,12 @@
 			<div class="row row--condensed">
 				<div class="col col--one">
 					<h1 class="report-heading">Ratings</h1>
+					<div class="row row--condensed">
+						<div class="col col--one">
+							<p class="u-textLeft">Team member scores in each category combine self and peer ratings.</p>
+							<p class="u-textLeft">Scale: 0 = Below Expectations, 5 = Meets Expectations, 10 = Exceeds Expectations</p>
+						</div>
+					</div>
 					<div id="section-ratings" class="row row--condensed"></div>
 				</div>
 			</div>

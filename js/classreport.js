@@ -340,7 +340,7 @@ let renderTeamDiv = (team, model, opt) => {
 			return b.contribution - a.contribution;
 		}).forEach(user => {
 			if(user.contribution || user.contribution === 0){
-				let percentile = (user.contribution / max) * 100;
+				let percentile = (user.contribution / max) * 10;
 				userOption.contribution = percentile.toFixed(1);
 			}
 			else{
@@ -380,6 +380,19 @@ let initReport = (uid) => {
 	//USER_ID = uid;
 
 	if(params.course){
+
+		let courseID = params.course.toLowerCase();
+		let cRef = LabsDB.ref('omniteams/courses/' + courseID);
+		cRef.once('value', snap => {
+			let courseData = snap.val();
+			if(!(uid in courseData.instructors)){
+				window.location = window.location.origin + '/team.html';
+			}
+			else{
+				console.log('Approved for access.');
+			}
+		});
+
 		let ref = LabsDB.ref('omniteams/teams');
 		let query = ref.orderByChild('course').startAt(params.course).endAt(params.course);
 		query.once('value', nodes => {

@@ -287,12 +287,19 @@ let renderRatingBar = (opt) => {
 	let options = opt || {};
 	let bar = document.createElement('div');
 	let pStr = toPercentString(options.value, options.max);
+	let dpStr = ((options.value / options.max) * 10).toFixed(1);
+	if(options.max === 0){
+		pStr = '0%';
+		dpStr = '?';
+	}
 	let color = options.color;
 	let html = '';
 	html += '<div class="bar-horizontal">'
 		html += '<div class="bar-label">' + options.text + '</div>'
 		html += '<div class="bar-holder">'
-			html += '<div class="bar-graph" style="width: ' + pStr + '; background: ' + color + ';"></div>'
+			html += '<div class="bar-graph" style="width: ' + pStr + '; background: ' + color + ';">'
+				html += '<div class="bar-value">' + dpStr + '</div>';
+			html += '</div>'
 		html += '</div>'
 	html += '</div>'
 	bar.innerHTML = html;
@@ -316,6 +323,8 @@ let renderTeamCategory = (category, team, model, opt) => {
 		div.appendChild(h);
 	//let totalMembers = Object.keys(team.members).filter(uid => !(uid in ignored)).length;
 	//let maxValue = 10 * totalMembers;
+	let bH = document.createElement('div');
+		bH.classList.add('rating-graph');
 	let ratingsFrom = {};
 	model.ratings.forEach(rate => {
 		ratingsFrom[rate.from] = true;
@@ -342,8 +351,9 @@ let renderTeamCategory = (category, team, model, opt) => {
 			max: maxValue,
 			color: userData.color
 		});
-		div.appendChild(rBar);
+		bH.appendChild(rBar);
 	});
+	div.appendChild(bH);
 	if(options.classList){
 		options.classList.forEach(className => {
 			div.classList.add(className);
@@ -365,10 +375,6 @@ let prometheus = Prometheus(OmniFirebaseConfig);
 let initReport = (uid) => {
 
 	prometheus.logon(uid);
-	prometheus.save({
-		type: 'VIEW_TEAM_REPORT',
-		tid: TEAM_ID
-	});
 
 	//USER_ID = uid;
 
@@ -381,11 +387,26 @@ let initReport = (uid) => {
 					course = course.toLowerCase();
 					let cRef = LabsDB.ref('omniteams/courses/' + course);
 					cRef.once('value', snap => {
+
+						let courseData = snap.val() || {};
+
+						if(!(uid in team.members || uid in courseData.instructors)){
+							window.location = window.location.origin + '/team.html';
+						}
+						else{
+							console.log('Approved for access.');
+						}
+
+						prometheus.save({
+							type: 'VIEW_TEAM_REPORT',
+							tid: tid
+						});
+
 						resolve({
 							tid: tid,
 							team: team,
 							ratings: ratings,
-							course: snap.val()
+							course: courseData
 						});
 					});
 				}
@@ -437,14 +458,14 @@ let mainReport = (teamData) => {
 		});
 		let totalRatingsFrom = Object.keys(ratingsFrom).length;
 		let rsp = document.createElement('p');
-			rsp.innerText = totalRatingsFrom + '/' + Object.keys(team.users).length + ' of your teammates submitted ratings.';
+			rsp.innerText = totalRatingsFrom + '/' + Object.keys(team.users).length + ' of the team members submitted ratings.';
 		entrySection.appendChild(rsp);
 
 		let swDiv = renderSWDiv(team, model);
 		overviewSection.appendChild(swDiv);
 
 		let mDiv = renderTeamMembers(team, model, {
-			ignore: course.instructors,
+			//ignore: course.instructors,
 			userCallback: (user) => {
 				console.log(user)
 				let uid = user.userid;
@@ -467,8 +488,8 @@ let mainReport = (teamData) => {
 			type: 'behavior'
 		}).forEach(category => {
 			let cDiv = renderTeamCategory(category, team, model, {
-				classList: ['col', 'col--onethird-sm', 'rating-holder'],
-				ignore: course.instructors
+				//ignore: course.instructors,
+				classList: ['col', 'col--onethird-sm', 'rating-holder']
 			});
 			ratingsSection.appendChild(cDiv);
 		});
