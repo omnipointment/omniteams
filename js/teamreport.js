@@ -390,11 +390,11 @@ let initReport = (uid) => {
 
 						let courseData = snap.val() || {};
 
-						if(!(uid in team.members || uid in courseData.instructors)){
-							window.location = window.location.origin + '/team.html';
+						if((uid in team.members || uid in courseData.instructors) || courseData.public){
+							console.log('Approved for access.');
 						}
 						else{
-							console.log('Approved for access.');
+							window.location = window.location.origin + '/team.html';
 						}
 
 						prometheus.save({
