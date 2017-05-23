@@ -76,6 +76,11 @@ function renderUserDiv(inUser, opt){
 		name.innerText = user.name;
 	div.appendChild(img);
 	div.appendChild(name);
+	if(options.classList){
+		options.classList.forEach(className => {
+			div.classList.add(className);
+		});
+	}
 	if(options.callback){
 		div.addEventListener('click', e => {
 			options.callback(user);
@@ -183,6 +188,14 @@ function getQueryParams(qs) {
 	return params;
 }
 
+let fillSpans = (className, content) => {
+	let spans = document.getElementsByClassName(className);
+	for(let s = 0; s < spans.length; s++){
+		let span = spans[s];
+		span.innerText = content;
+	}
+}
+
 /* Specific Code */
 
 function toPercentString(value, max){
@@ -249,111 +262,103 @@ let renderSWDiv = (team, model, opt) => {
 	return div;
 }
 
-let renderUserContributionDiv = (user, opt) => {
+let renderTeamMembers = (team, model, opt) => {
 	let options = opt || {};
+	let ignored = options.ignore || {};
 	let div = document.createElement('div');
-		div.classList.add('member-holder');
-	let contrib = document.createElement('div');
-		contrib.classList.add('member-contribution');
-		if(!options.contribution){
-			contrib.innerText = '?';
+	for(let uid in team.users){
+		if(!(uid in ignored)){
+			let user = team.users[uid];
+			let userDiv = renderUserDiv(user, {
+				classList: options.classList || [],
+				callback: options.userCallback
+			});
+			div.appendChild(userDiv);
 		}
-		else{
-			contrib.innerText = options.contribution;
-		}
-		if(options.style){
-			for(let sid in options.style){
-				contrib.style[sid] = options.style[sid];
-			}
-		}
-	let userDiv = renderUserDiv(user, options);
-	div.appendChild(contrib);
-	div.appendChild(userDiv);
+	}
 	return div;
 }
 
-let renderTeamReportButton = (team, model, opt) => {
-	let btn = document.createElement('button');
-		btn.classList.add('btn', 'btn--ghost', 'btn--center');
-		btn.innerText = 'View Team Report';
-		btn.addEventListener('click', e => {
-			let trURL = window.location.origin + '/teamreport.html' + '?team=' + team.tid;
-			prometheus.save({
-				type: 'TEAM_REPORT_FROM_CLASS_REPORT',
-				tid: team.tid,
-				course: params.course
-			});
-			window.open(trURL);
-		});
-	return btn;
+let getFirstName = (name) => {
+	return name.split(' ')[0];
 }
 
-let renderTeamDiv = (team, model, opt) => {
+let renderRatingBar = (opt) => {
 	let options = opt || {};
+	let bar = document.createElement('div');
+	let pStr = toPercentString(options.value, options.max);
+	let dpStr = ((options.value / options.max) * 10).toFixed(1);
+	if(options.max === 0){
+		pStr = '0%';
+		dpStr = '?';
+	}
+	let color = options.color;
+	let html = '';
+	html += '<div class="bar-horizontal">'
+		html += '<div class="bar-label">' + options.text + '</div>'
+		html += '<div class="bar-holder">'
+			html += '<div class="bar-graph" style="width: ' + pStr + '; background: ' + color + ';">'
+				html += '<div class="bar-value">' + dpStr + '</div>';
+			html += '</div>'
+		html += '</div>'
+	html += '</div>'
+	bar.innerHTML = html;
+	return bar;
+}
+
+// Light Purple: rgb(79,49,115)
+const ORDERED_COLORS = [];
+for(let ci = 0; ci < 10; ci++){
+	let alpha = (100 - (ci * 15)) / 100;
+	let colorStr = 'rgba(79, 49, 115, ' + alpha + ')';
+	ORDERED_COLORS.push(colorStr);
+}
+
+let renderTeamCategory = (category, team, model, opt) => {
+	let options = opt || {};
+	let ignored = options.ignore || {};
 	let div = document.createElement('div');
-		div.classList.add('team');
-		if(options.classList){
-			options.classList.forEach(className => {
-				div.classList.add(className);
-			});
+	let h = document.createElement('h4');
+		h.innerText = category.name;
+		div.appendChild(h);
+	//let totalMembers = Object.keys(team.members).filter(uid => !(uid in ignored)).length;
+	//let maxValue = 10 * totalMembers;
+	let bH = document.createElement('div');
+		bH.classList.add('rating-graph');
+	let ratingsFrom = {};
+	model.ratings.forEach(rate => {
+		ratingsFrom[rate.from] = true;
+	});
+	let totalRatingsFrom = Object.keys(ratingsFrom).length;
+	let maxValue = 10 * totalRatingsFrom;
+	Object.keys(team.members).filter(uid => !(uid in ignored)).map((uid, idx) => {
+		return {
+			user: team.users[uid],
+			score: selectFromList(model.ratings, {
+					category: category.id,
+					to: uid
+				}).reduce((score, rate) => {
+					return score + rate.level
+				}, 0),
+			color: ORDERED_COLORS[idx]
 		}
-	let overview = document.createElement('div');
-		overview.classList.add('team-overview');
-		let h = document.createElement('h3');
-			h.innerText = team.name;
-			overview.appendChild(h);
-	/*let swDiv = renderSWDiv(team, model, options);
-		swDiv.classList.add('team-sw');*/
-	let members = document.createElement('div');
-		members.classList.add('team-members');
-		let userOption = {};
-		if(options.userCallback){
-			userOption.callback = (user) => {
-				options.userCallback(user, team);
-			}
-		}
-		let ratingsFrom = {};
-		model.ratings.forEach(rate => {
-			ratingsFrom[rate.from] = true;
+	}).forEach(userData => {
+		let user = userData.user;
+		let value = userData.score;
+		let rBar = renderRatingBar({
+			text: getFirstName(user.name),
+			value: value,
+			max: maxValue,
+			color: userData.color
 		});
-		let totalRatingsFrom = Object.keys(ratingsFrom).length;
-		let max = MAX_RATING * totalRatingsFrom;
-		let p1 = document.createElement('p');
-			p1.innerText = totalRatingsFrom + '/' + Object.keys(team.users).length + ' students submitted ratings.'
-		members.appendChild(p1);
-		Object.keys(team.users).map(uid => {
-			let user = team.users[uid];
-			user.contribution = false;
-			let sum = 0;
-			let toRatings = selectFromList(model.ratings, {
-				category: 'contibuting',
-				to: uid
-			});
-			if(toRatings.length > 0){
-				toRatings.forEach(rate => {
-					sum += rate.level;
-				});
-				user.contribution = sum;
-			}
-			return user;
-		}).sort((a, b) => {
-			return b.contribution - a.contribution;
-		}).forEach(user => {
-			if(user.contribution || user.contribution === 0){
-				let percentile = (user.contribution / max) * 10;
-				userOption.contribution = percentile.toFixed(1);
-			}
-			else{
-				userOption.contribution = user.contribution;
-			}
-			let userDiv = renderUserContributionDiv(user, userOption);
-			members.appendChild(userDiv);
+		bH.appendChild(rBar);
+	});
+	div.appendChild(bH);
+	if(options.classList){
+		options.classList.forEach(className => {
+			div.classList.add(className);
 		});
-	let rBtn = renderTeamReportButton(team, model, opt);
-	div.appendChild(overview);
-	div.appendChild(members);
-	div.appendChild(rBtn);
-	//div.appendChild(swDiv);
+	}
 	return div;
 }
 
@@ -367,84 +372,57 @@ let params = getQueryParams(document.location.search);
 let prometheus = Prometheus(OmniFirebaseConfig);
 	//prometheus.logon(USER_ID);
 
-let tidList = ['-KkH6b_A054B7SSstMEA'];
-
 let initReport = (uid) => {
 
 	prometheus.logon(uid);
-	prometheus.save({
-		type: 'VIEW_CLASS_REPORT',
-		course: params.course
-	});
 
 	//USER_ID = uid;
 
-	if(params.course){
+	let p = new Promise((resolve, reject) => {
+		let tid = params.team;
+		getTeamWithUsers(tid).then(team => {
+			getRatingsList(tid).then(ratings => {
+				let course = team.course || false;
+				if(course){
+					course = course.toLowerCase();
+					let cRef = LabsDB.ref('omniteams/courses/' + course);
+					cRef.once('value', snap => {
 
-		let courseID = params.course.toLowerCase();
-		let cRef = LabsDB.ref('omniteams/courses/' + courseID);
-		cRef.once('value', snap => {
-			let courseData = snap.val();
-			if(!(uid in courseData.instructors)){
-				window.location = window.location.origin + '/team.html';
-			}
-			else{
-				console.log('Approved for access.');
-			}
-		});
+						let courseData = snap.val() || {};
 
-		let ref = LabsDB.ref('omniteams/teams');
-		let query = ref.orderByChild('course').startAt(params.course).endAt(params.course);
-		query.once('value', nodes => {
-			let nodeMap = nodes.val() || {};
-			let teamList = Object.keys(nodeMap).map(nid => {
-				let team = FormatTeam(nodeMap[nid], nid);
-				return {
-					tid: nid,
-					team: team
-				}
-			});
-			let teamPromises = [];
-			teamList.forEach(teamEntry => {
-				let p = new Promise((resolve, reject) => {
-					let tid = teamEntry.tid;
-					getTeamWithUsers(tid, teamEntry.team).then(team => {
-						getRatingsList(tid).then(ratings => {
-							resolve({
-								tid: tid,
-								team: team,
-								ratings: ratings
-							})
-						}).catch(reject);
-					}).catch(reject);
-				});
-				teamPromises.push(p);
-			});
-			Promise.all(teamPromises).then(teamData => {
-				mainReport(teamData).then(finishReport).catch(displayError);
-			}).catch(displayError);
-		});
-	}
-	else{
-		let teamPromises = [];
-		tidList.forEach(tid => {
-			let p = new Promise((resolve, reject) => {
-				getTeamWithUsers(tid).then(team => {
-					getRatingsList(tid).then(ratings => {
+						if(!(uid in team.members || uid in courseData.instructors)){
+							window.location = window.location.origin + '/team.html';
+						}
+						else{
+							console.log('Approved for access.');
+						}
+
+						prometheus.save({
+							type: 'VIEW_TEAM_REPORT',
+							tid: tid
+						});
+
 						resolve({
 							tid: tid,
 							team: team,
-							ratings: ratings
-						})
-					}).catch(reject);
-				}).catch(reject);
-			});
-			teamPromises.push(p);
-		});
-		Promise.all(teamPromises).then(teamData => {
-			mainReport(teamData).then(finishReport).catch(displayError);
-		}).catch(displayError);
-	}
+							ratings: ratings,
+							course: courseData
+						});
+					});
+				}
+				else{
+					resolve({
+						tid: tid,
+						team: team,
+						ratings: ratings
+					});
+				}
+			}).catch(reject);
+		}).catch(reject);
+	});
+	p.then(teamData => {
+		mainReport(teamData).then(finishReport).catch(displayError);
+	}).catch(displayError);
 
 }
 
@@ -457,57 +435,63 @@ const MAX_RATING = 10;
 let mainReport = (teamData) => {
 	return new Promise((resolve, reject) => {
 
-		teamData = teamData.map(data => {
-			data.ratings = normalizeRatings(data.ratings, {
-				old: [1, 5],
-				new: [0, MAX_RATING]
-			});
-			return data;
+		console.log(teamData);
+
+		let team = teamData.team;
+		let model = getTeamModel(teamData);
+		let ratings = normalizeRatings(teamData.ratings, {
+			old: [1, 5],
+			new: [0, MAX_RATING]
 		});
+		let course = teamData.course || {};
 
-		console.log(teamData)
+		let entrySection = document.getElementById('section-entry');
+		let overviewSection = document.getElementById('section-overview');
+		let membersSection = document.getElementById('section-members');
+		let ratingsSection = document.getElementById('section-ratings');
+		fillSpans('fill-team-name', team.name);
+		fillSpans('fill-course-name', course.name);
 
-		let teamsSection = document.getElementById('section-teams');
+		let ratingsFrom = {};
+		model.ratings.forEach(rate => {
+			ratingsFrom[rate.from] = true;
+		});
+		let totalRatingsFrom = Object.keys(ratingsFrom).length;
+		let rsp = document.createElement('p');
+			rsp.innerText = totalRatingsFrom + '/' + Object.keys(team.users).length + ' of the team members submitted ratings.';
+		entrySection.appendChild(rsp);
 
-		teamData.map(data => {
-			data.order = 0;
-			let sum = 0;
-			let cr = selectFromList(data.ratings, {
-				category: 'contibuting'
-			});
-			if(cr.length === 0){
-				data.order = Infinity;
-			}
-			else{
-				cr.forEach(rate => {
-					sum += rate.level;
-				});
-				data.order = sum;
-			}
-			return data;
-		}).sort((a, b) => {
-			return a.order - b.order;
-		}).forEach(data => {
-			let model = getTeamModel(data);
-			let div = renderTeamDiv(data.team, model, {
-				classList: ['col', 'col--onethird-sm'],
-				userCallback: (user, team) => {
-					console.log(user, team)
-					let uid = user.userid;
-					let tid = team.tid;
-					if(uid && tid){
-						let srURL = window.location.origin + '/studentreport.html' + '?uid=' + uid + '&team=' + tid;
-						prometheus.save({
-							type: 'STUDENT_REPORT_FROM_CLASS_REPORT',
-							tid: tid,
-							uid: uid,
-							course: params.course
-						});
-						window.open(srURL);
-					}
+		let swDiv = renderSWDiv(team, model);
+		overviewSection.appendChild(swDiv);
+
+		let mDiv = renderTeamMembers(team, model, {
+			//ignore: course.instructors,
+			userCallback: (user) => {
+				console.log(user)
+				let uid = user.userid;
+				let tid = team.tid;
+				if(uid && tid){
+					let srURL = window.location.origin + '/studentreport.html' + '?uid=' + uid + '&team=' + tid;
+					prometheus.save({
+						type: 'STUDENT_REPORT_FROM_TEAM_REPORT',
+						tid: tid,
+						uid: uid
+					});
+					window.open(srURL);
 				}
+			}
+		});
+		mDiv.classList.add('member-holder');
+		membersSection.appendChild(mDiv);
+
+		selectFromList(CATEGORY_LIST, {
+			type: 'behavior'
+		}).forEach(category => {
+			let cDiv = renderTeamCategory(category, team, model, {
+				//ignore: course.instructors,
+				classList: ['col', 'col--onethird-sm', 'rating-holder']
 			});
-			teamsSection.appendChild(div);
+			ratingsSection.appendChild(cDiv);
 		});
 
 	});

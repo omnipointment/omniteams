@@ -179,10 +179,6 @@
 				vertical-align: top;
 			}
 
-			.member-holder .member {
-				display: inline-block;
-			}
-
 			.strength :nth-child(1) {
 				color: #93E630;
 			}
@@ -219,6 +215,62 @@
 				color: white;
 			}
 
+			.label-wrapper {
+				text-align: center !important;
+			}
+
+			.label-wrapper :nth-child(1) {
+				font-size: 12px;
+				font-weight: bold;
+				padding: 5px;
+			}
+
+			/* HORIZONTAL RATINGS */
+
+			.rating-holder {
+				margin-bottom: 30px;
+				padding: 10px !important;
+			}
+
+			.rating-holder .rating-graph {
+				padding: 10px 15px;
+			}
+
+			.bar-horizontal {
+				font-size: 0;
+			}
+
+			.bar-horizontal .bar-label, .bar-horizontal .bar-holder {
+				display: inline-block;
+				height: 20px;
+				line-height: 20px;
+				vertical-align: middle;
+			}
+
+			.bar-horizontal .bar-label {
+				width: 25%;
+				font-size: 15px;
+			}
+
+			.bar-horizontal .bar-holder {
+				width: 75%;
+				padding-right: 40px;
+			}
+
+			.bar-horizontal .bar-holder .bar-graph {
+				height: 10px;
+				padding: 2.5px;
+				margin: 5px;
+			}
+
+			.bar-horizontal .bar-holder .bar-graph .bar-value {
+				position: absolute;
+				margin-top: -7.5px;
+				display: inline-block;
+				right: 20px;
+				font-size: 15px;
+			}
+
 		</style>
 	</head>
 	<body class="body body--landing">
@@ -237,19 +289,43 @@
 
 		<section id="page">
 
-			<h1>Class Collaboration Report</h1>
+			<h1>Team Collaboration Report</h1>
 			<div class="row row--condensed">
 				<div class="col col--one">
-					<p class="u-textLeft">Members in each team are sorted based on their ratings for <span class="bold">Contributing to the Team's Work</span>, one of the five evaluation categories.</p>
-					<p class="u-textLeft">Scale: 0 = Below Expectations, 5 = Meets Expectations, 10 = Exceeds Expectations</p>
-					<p class="u-textLeft">In addition to team reports, you can click on any student to access their individual report.</p>
+					<div id="section-entry"></div>
+				</div>
+			</div>
+
+			<div class="row row--condensed">
+				<div class="col col--onehalf-sm">
+					<h1 class="report-heading">Overview</h1>
+					<div class="label-wrapper">
+						<div>Team Name</div>
+						<h4 class="fill-team-name">Untitled</h4>
+					</div>
+					<div class="label-wrapper">
+						<div>Course Name</div>
+						<h4 class="fill-course-name">Untitled</h4>
+					</div>
+					<div id="section-overview" class="row row--condensed"></div>
+				</div>
+				<div class="col col--onehalf-sm">
+					<h1 class="report-heading">Members</h1>
+					<p class="u-textLeft">Click on a team member to view their individual report.</p>
+					<div id="section-members" class="row row--condensed"></div>
 				</div>
 			</div>
 
 			<div class="row row--condensed">
 				<div class="col col--one">
-					<h1 class="report-heading">Teams</h1>
-					<div id="section-teams" class="row row--condensed"></div>
+					<h1 class="report-heading">Ratings</h1>
+					<div class="row row--condensed">
+						<div class="col col--one">
+							<p class="u-textLeft">Team member scores in each category combine self and peer ratings.</p>
+							<p class="u-textLeft">Scale: 0 = Below Expectations, 5 = Meets Expectations, 10 = Exceeds Expectations</p>
+						</div>
+					</div>
+					<div id="section-ratings" class="row row--condensed"></div>
 				</div>
 			</div>
 
@@ -257,7 +333,7 @@
 
 		<script type="text/javascript" src="./js/categories.js"></script>
 		<script type="text/javascript" src="./js/stats.js"></script>
-		<script type="text/javascript" src="./js/classreport.js"></script>
+		<script type="text/javascript" src="./js/teamreport.js"></script>
 
 	</body>
 </html>

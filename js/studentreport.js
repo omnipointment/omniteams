@@ -53,12 +53,14 @@ function getTeam(tid){
 	});	
 }
 
+const MISSING_PICTURE = 'http://vingkan.github.io/omnipointment/img/empty-user-img.png';
+
 function renderUserDiv(holder, user){
 	holder.innerHTML = '';
 	let div = document.createElement('div');
 		div.classList.add('member');
 	let pic = document.createElement('div');
-		pic.style.background = 'url("' + user.picture + '")'
+		pic.style.background = 'url("' + user.picture || false + '")'
 	let name = document.createElement('div');
 		name.innerText = user.name;
 		div.appendChild(pic);
@@ -72,6 +74,9 @@ function getUser(uid){
 			var ref = OmniDB.ref('prometheus/users/' + uid + '/profile');
 			ref.once('value', snap => {
 				var val = snap.val();
+				if(!val.picture){
+					val.picture = MISSING_PICTURE;
+				}
 				resolve(val);
 			}).catch(reject);
 		}
@@ -232,13 +237,15 @@ let USER_ID = params.uid || '57a2436ba678614943ef5fd3';
 let TEAM_ID = params.team || '-KkH6b_A054B7SSstMEA';
 
 let prometheus = Prometheus(OmniFirebaseConfig);
-	prometheus.logon(USER_ID);
-	prometheus.save({
-		type: 'VIEW_STUDENT_REPORT',
-		tid: TEAM_ID
-	});
 
 let initReport = (uid) => {
+
+	prometheus.logon(uid);
+	prometheus.save({
+		type: 'VIEW_STUDENT_REPORT',
+		tid: TEAM_ID,
+		uid: USER_ID
+	});
 
 	//USER_ID = uid;
 
@@ -428,7 +435,22 @@ let mainReport = (inRatings, team) => {
 
 let finishReport = (done) => {
 
-
+	let careerButton = document.getElementById('submit-career');
+	let careerResponse = document.getElementById('respond-career');
+	careerButton.addEventListener('click', e => {
+		let cRef = LabsDB.ref('omniteams/careers/');
+		cRef.push({
+			uid: USER_ID,
+			response: careerResponse.value,
+			timestamp: Date.now()
+		}).then(done => {
+			vex.dialog.alert('Your response has been submitted, thank you!');
+		}).catch(displayError);
+		prometheus.save({
+			type: 'CAREER_RESPONSE',
+			response: careerResponse.value
+		});
+	});
 
 }
 

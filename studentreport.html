@@ -177,6 +177,20 @@
 				margin: 10px 5px;
 			}
 
+			textarea {
+				border: 2px solid #2D0A58;
+				width: 100%;
+				display: block;
+				margin: 20px auto;
+				padding: 10px;
+				line-height: 20px;
+				min-height: 80px;
+			}
+
+			.legend-p {
+				margin: 20px;
+			}
+
 		</style>
 	</head>
 	<body class="body body--landing">
@@ -216,6 +230,7 @@
 							<div class="legend-explain">Average rating for your whole team.</div>
 						</div>
 					</div>
+					<p class="legend-p">Scale: 0 = Below Expectations, 5 = Meets Expectations, 10 = Exceeds Expectations</p>
 					<div id="section-ratings" class="row row--condensed"></div>
 				</div>
 			</div>
@@ -237,12 +252,12 @@
 				<div class="col col--one">
 					<h1 class="report-heading">Careers</h1>
 					<div class="row row--condensed">
-						<div class="col col--onehalf-sm">
+						<div class="col col--one">
+							<h3>What careers are you interested in?</h3>
 							<p class="u-textLeft">Coming Soon... In Fall 2017 collaboration reports will show you what areas of teamwork to improve in to become a better candidate for your dream career!</p>
-						</div>
-						<div class="col col--onehalf-sm">
-							<p>Are you interested in any of these careers?</p>
-							<div id="section-career-votes"></div>
+							<p class="u-textLeft">To help us prioritize, please share some careers that you might be interested in. This is an anonymous question.</p>
+							<textarea id="respond-career"></textarea>
+							<button id="submit-career" class="btn btn--primary">Submit</button>
 						</div>
 					</div>
 				</div>

@@ -1087,6 +1087,12 @@ function mainTeam(){
 			window.location = rateURL;
 		});
 
+		var reportBtn = document.getElementById('report-button');
+		reportBtn.addEventListener('click', e => {
+			var reportURL = window.location.origin + '/studentreport.html' + '?team=' + TEAM_ID + '&uid=' + UID;
+			window.location = reportURL;
+		});
+
 	}).catch(err => {
 		window.location = window.location.origin + window.location.pathname;
 	});
