@@ -278,6 +278,11 @@ let renderTeamReportButton = (team, model, opt) => {
 		btn.innerText = 'View Team Report';
 		btn.addEventListener('click', e => {
 			let trURL = window.location.origin + '/teamreport.html' + '?team=' + team.tid;
+			prometheus.save({
+				type: 'TEAM_REPORT_FROM_CLASS_REPORT',
+				tid: team.tid,
+				course: params.course
+			});
 			window.open(trURL);
 		});
 	return btn;
@@ -365,6 +370,12 @@ let prometheus = Prometheus(OmniFirebaseConfig);
 let tidList = ['-KkH6b_A054B7SSstMEA'];
 
 let initReport = (uid) => {
+
+	prometheus.logon(uid);
+	prometheus.save({
+		type: 'VIEW_CLASS_REPORT',
+		course: params.course
+	});
 
 	//USER_ID = uid;
 
@@ -473,6 +484,12 @@ let mainReport = (teamData) => {
 					let tid = team.tid;
 					if(uid && tid){
 						let srURL = window.location.origin + '/studentreport.html' + '?uid=' + uid + '&team=' + tid;
+						prometheus.save({
+							type: 'STUDENT_REPORT_FROM_CLASS_REPORT',
+							tid: tid,
+							uid: uid,
+							course: params.course
+						});
 						window.open(srURL);
 					}
 				}

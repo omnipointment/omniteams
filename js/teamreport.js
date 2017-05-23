@@ -364,6 +364,12 @@ let prometheus = Prometheus(OmniFirebaseConfig);
 
 let initReport = (uid) => {
 
+	prometheus.logon(uid);
+	prometheus.save({
+		type: 'VIEW_TEAM_REPORT',
+		tid: TEAM_ID
+	});
+
 	//USER_ID = uid;
 
 	let p = new Promise((resolve, reject) => {
@@ -445,6 +451,11 @@ let mainReport = (teamData) => {
 				let tid = team.tid;
 				if(uid && tid){
 					let srURL = window.location.origin + '/studentreport.html' + '?uid=' + uid + '&team=' + tid;
+					prometheus.save({
+						type: 'STUDENT_REPORT_FROM_TEAM_REPORT',
+						tid: tid,
+						uid: uid
+					});
 					window.open(srURL);
 				}
 			}
