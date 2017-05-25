@@ -384,6 +384,7 @@ let categoryProgressDivs = document.getElementsByClassName('rating-category-prog
 let progressDivs = document.getElementsByClassName('rating-progress');
 let submissionDiv = document.getElementById('rating-submission');
 let questionDiv = document.getElementById('rating-question');
+let finishedButtonsDiv = document.getElementById('rating-finished-buttons');
 
 let progressWrapper = document.getElementById('progress-wrapper');
 let progressSlider = document.getElementById('progress-slider');
@@ -418,6 +419,25 @@ let finishRatings = (ratings) => {
 
 	saveRatings(ratings).then(() => {
 		submissionDiv.innerText = 'Your peer evaluations have been submitted!';
+		finishedButtonsDiv.style.display = 'block';
+		let tBtn = document.getElementById('post-survey-team');
+			tBtn.addEventListener('click', e => {
+				prometheus.save({
+					type: 'FINISH_RATINGS_THEN_TEAM',
+					tid: TEAM_ID
+				});
+				let tURL = window.location.origin + '/team.html' + '?team=' + TEAM_ID;
+				window.location = tURL;
+			});
+		let fBtn = document.getElementById('post-survey-report');
+			fBtn.addEventListener('click', e => {
+				prometheus.save({
+					type: 'FINISH_RATINGS_THEN_REPORT',
+					tid: TEAM_ID
+				});
+				let fURL = window.location.origin + '/studentreport.html' + '?uid=' + USER_ID + '&team=' + TEAM_ID;
+				window.location = fURL;
+			});
 	}).catch(displayError);
 
 	prometheus.save({

@@ -321,6 +321,35 @@ let mainReport = (inRatings, team) => {
 			new: [0, 10]
 		});
 
+		let submittedYourRatings = (ratings.filter(rate => rate.from === USER_ID).length > 0);
+		if(!submittedYourRatings){
+			vex.dialog.alert({
+				message: 'We noticed that you haven\'t finished your peer evaluation yet... Please give your teammates feedback before reading the feedback they left for you!',
+				buttons: [
+					$.extend({}, vex.dialog.buttons.YES, {text: 'Give Feedback'}),
+					$.extend({}, vex.dialog.buttons.NO, {text: 'Be Selfish'})
+				],
+				callback: (press) => {
+					if(press){
+						prometheus.save({
+							type: 'EVAL_FROM_STUDENT_REPORT',
+							tid: TEAM_ID,
+							uid: USER_ID
+						});
+						let peURL = window.location.origin + '/ratings.html' + '?team=' + TEAM_ID;
+						window.location = peURL;
+					}
+					else{
+						prometheus.save({
+							type: 'SELFISH_FROM_STUDENT_REPORT',
+							tid: TEAM_ID,
+							uid: USER_ID
+						});
+					}
+				}
+			});
+		}
+
 		const MAX_RATING = 10;
 
 		let studentSection = document.getElementById('section-student');
