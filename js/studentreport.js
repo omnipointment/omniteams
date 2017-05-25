@@ -241,25 +241,71 @@ let prometheus = Prometheus(OmniFirebaseConfig);
 let initReport = (uid) => {
 
 	prometheus.logon(uid);
-	prometheus.save({
-		type: 'VIEW_STUDENT_REPORT',
-		tid: TEAM_ID,
-		uid: USER_ID
-	});
 
-	//USER_ID = uid;
+	if(params.code){
+		prometheus.save({
+			type: 'VIEW_STUDENT_REPORT_FROM_CLASS_CODE',
+			class: params.code
+		});
 
-	//mainRatings({users: FAKE_TEAM}).then(finishRatings).catch(displayError);
+		let courseRef = LabsDB.ref('omniteams/teams');
+		let courseQuery = courseRef.orderByChild('course').equalTo(params.code);
+		courseQuery.once('value', snap => {
+			let nodes = snap.val() || {};
+			let yourTeam = false;
+			if(Object.keys(nodes).length > 0){
+				for(let tid in nodes){
+					let courseTeam = nodes[tid];
+					if(courseTeam.members){
+						if(uid in courseTeam.members){
+							yourTeam = tid;
+							break;
+						}
+					}
+				}
+				if(yourTeam){
+					let srURL = window.location.origin + '/studentreport.html' + '?uid=' + uid + '&team=' + yourTeam;
+					window.location = srURL;
+				}
+				else{
+					prometheus.save({
+						type: 'STUDENT_REPORT_STUDENT_NOT_FOUND',
+						class: params.code
+					});
+					vex.dialog.alert('Sorry, we could not find a student collaboration report for you in this class. Make sure your code is spelled correctly (case-sensitive) or email team@omnipointment.com for help.');
+				}
+			}
+			else{
+				prometheus.save({
+					type: 'STUDENT_REPORT_CLASS_NOT_FOUND',
+					class: params.code
+				});
+				vex.dialog.alert('Sorry, we could not find any teams for the class code: ' + params.code + '. Make sure your code is spelled correctly (case-sensitive) or email team@omnipointment.com for help.');
+			}
+		});
 
-	getTeamWithUsers(TEAM_ID).then(team => {
+	}
+	else{
+		prometheus.save({
+			type: 'VIEW_STUDENT_REPORT',
+			tid: TEAM_ID,
+			uid: USER_ID
+		});
 
-		getRatingsList(TEAM_ID).then(ratings => {
+		//USER_ID = uid;
 
-			mainReport(ratings, team).then(finishReport).catch(displayError);
+		//mainRatings({users: FAKE_TEAM}).then(finishRatings).catch(displayError);
+
+		getTeamWithUsers(TEAM_ID).then(team => {
+
+			getRatingsList(TEAM_ID).then(ratings => {
+
+				mainReport(ratings, team).then(finishReport).catch(displayError);
+
+			}).catch(displayError);
 
 		}).catch(displayError);
-
-	}).catch(displayError);
+	}
 
 }
 
