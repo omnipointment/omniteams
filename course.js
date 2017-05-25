@@ -94,6 +94,14 @@ function getQueryParams(qs) {
 	return params;
 }
 
+function fillTextSpans(spanClass, text){
+	var spans = document.getElementsByClassName(spanClass);
+	for(var s = 0; s < spans.length; s++){
+		var span = spans[s];
+		span.innerText = text;
+	}
+}
+
 function addMeetingToTeam(tid, mid, meeting){
 	var meetingData = meeting || {name: false};
 	return new Promise((resolve, reject) => {
@@ -273,6 +281,14 @@ function mainCourse(courseCode){
 	prometheus.save({
 		type: 'COURSE_TEAM_SIGNUP_PAGE',
 		course: courseCode
+	});
+
+	var courseRef = LabsDB.ref('omniteams/courses/' + courseCode);
+	courseRef.once('value', snap => {
+		var courseData = snap.val() || {};
+		if(courseData.name){
+			fillTextSpans('fill-course-name', courseData.name);
+		}
 	});
 
 	var createButton = document.createElement('button');
