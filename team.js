@@ -780,6 +780,8 @@ function renderMeetings(holder, inMeetings, team){
 	var col_class = 'col--onehalf-sm'; // 'col--onefourth-xs col--onehalf-md'
 	var meetingCards = renderCards(mtgList, col_class);
 	holder.appendChild(meetingCards);
+	var btnHolder = document.createElement('div');
+		btnHolder.classList.add('btn--center-holder');
 	var createLink = document.createElement('button');
 		createLink.addEventListener('click', e => {
 			prometheus.save({
@@ -792,7 +794,19 @@ function renderMeetings(holder, inMeetings, team){
 		})
 		createLink.innerText = 'Organize New Meeting';
 		createLink.classList.add('btn', 'btn--center', 'btn--primary');
-		holder.appendChild(createLink);
+		btnHolder.appendChild(createLink);
+	var videoCall = document.createElement('button');
+		videoCall.addEventListener('click', e => {
+			prometheus.save({
+				type: 'VIDEO_CALL_FROM_TEAM_DASHBOARD',
+				tid: TEAM_ID
+			});
+			var vWin = window.open('https://appear.in/omnipointment/' + TEAM_ID);
+		})
+		videoCall.innerText = 'Join Team Video Call';
+		videoCall.classList.add('btn', 'btn--center', 'btn--ghost');
+		btnHolder.appendChild(videoCall);
+	holder.appendChild(btnHolder);
 }
 
 function listenForCreatedMeeting(){

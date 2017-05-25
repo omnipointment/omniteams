@@ -66,6 +66,15 @@
 				margin: 10px auto;
 			}
 
+			.btn--center-holder {
+				text-align: center;
+			}
+
+			.btn--center-holder button {
+				display: inline-block;
+				margin: 5px;
+			}
+
 		</style>
 	</head>
 	<body class="body body--landing">
@@ -198,10 +207,13 @@
 								<div class="toggle__chevron"></div>
 							</div>
 							<div class="toggle__section toggle__expandable" data-hook="content">
+								<p class="u-textLeft" id="feedback-status">Your team members can now give each other feedback!</p>
 								<div id="feedback-container">
-									<p class="u-textLeft">This anonymous peer feedback survey will help your teammates identify their strengths and areas for improvement when working in teams. After everyone has completed the survey, you will get personalized feedback!</p>
-									<button id="rate-button" class="btn btn--primary">Rate Teammates</button>
-									<button id="report-button" class="btn btn--ghost">View Feedback</button>
+									<p class="u-textLeft">This anonymous peer feedback survey will help your teammates identify their strengths and areas for improvement when working in teams. After everyone has completed the survey, you can view your personalized feedback!</p>
+									<div class="btn--center-holder">
+										<button id="rate-button" class="btn btn--primary">Rate Teammates</button>
+										<button id="report-button" class="btn btn--ghost">View Feedback</button>
+									</div>
 								</div>
 							</div>
 						</div>
