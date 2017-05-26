@@ -1,0 +1,22 @@
+{
+  "name": "Omnipointment",
+  "description": "Experience great team projects.",
+  "icons": [{
+    "src": "img/icon.png",
+    "sizes": "128x128",
+    "type": "image/png"
+  }],
+  "developer": {
+    "name": "Omnipointment",
+    "url": "team@omnipointment.com"
+  },
+  "default_locale": "en",
+  "lang": "en-US",
+  "chrome": { "navigation": true },
+  "start_url": "/team",
+  "launch_path": "/team",
+  "theme_color": "#2D0A58",
+  "display": "standalone",
+  "fullscreen": "true",
+  "orientation": "portrait"
+}
