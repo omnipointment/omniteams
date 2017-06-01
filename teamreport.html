@@ -271,6 +271,31 @@
 				font-size: 15px;
 			}
 
+			.print-format {
+				padding: 0;
+				height: initial;
+				min-height: 0;
+			}
+
+			.print-format header {
+				display: none;
+			}
+
+			.print-format #page {
+				padding: 0;
+				height: initial;
+				min-height: 0;
+			}
+
+			.print-format .col--onethird-sm {
+				background: orange;
+			}
+
+			.print-format .category {
+				padding: 10px !important;
+			}
+			
+
 		</style>
 	</head>
 	<body class="body body--landing">
@@ -297,7 +322,7 @@
 			</div>
 
 			<div class="row row--condensed">
-				<div class="col col--onehalf-sm">
+				<div class="overview-section col col--onehalf-sm">
 					<h1 class="report-heading">Overview</h1>
 					<div class="label-wrapper">
 						<div>Team Name</div>
@@ -309,7 +334,7 @@
 					</div>
 					<div id="section-overview" class="row row--condensed"></div>
 				</div>
-				<div class="col col--onehalf-sm">
+				<div class="overview-section col col--onehalf-sm">
 					<h1 class="report-heading">Members</h1>
 					<p class="u-textLeft">Click on a team member to view their individual report.</p>
 					<div id="section-members" class="row row--condensed"></div>

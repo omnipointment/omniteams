@@ -494,12 +494,34 @@ let mainReport = (teamData) => {
 			ratingsSection.appendChild(cDiv);
 		});
 
+		resolve(true);
+
 	});
 }
 
 let finishReport = (done) => {
 
-
+	let mediaQueryList = window.matchMedia('print');
+	mediaQueryList.addListener(function(mql) {
+		if(mql.matches){
+			console.log('onbeforeprint');
+			document.body.classList.add('print-format');
+			let cols = document.getElementsByClassName('rating-holder');
+			for(let c = 0; c < cols.length; c++){
+				cols[c].classList.remove('col--onethird-sm');
+				cols[c].classList.add('col--onehalf');
+			}
+			let secs = document.getElementsByClassName('overview-section');
+			for(let c = 0; c < secs.length; c++){
+				secs[c].classList.remove('col--onehalf-sm');
+				secs[c].classList.add('col--onehalf');
+			}
+		}
+		else if(!mql.matches){
+			console.log('onafterprint');
+			//document.body.classList.remove('print-format');
+		}
+	});
 
 }
 

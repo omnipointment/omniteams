@@ -527,6 +527,23 @@ let finishReport = (done) => {
 		});
 	});
 
+	let mediaQueryList = window.matchMedia('print');
+	mediaQueryList.addListener(function(mql) {
+		if(mql.matches){
+			console.log('onbeforeprint');
+			document.body.classList.add('print-format');
+			let cols = document.getElementsByClassName('category');
+			for(let c = 0; c < cols.length; c++){
+				cols[c].classList.remove('col--onethird-sm');
+				cols[c].classList.add('col--onehalf');
+			}
+		}
+		else if(!mql.matches){
+			console.log('onafterprint');
+			//document.body.classList.remove('print-format');
+		}
+	});
+
 }
 
 var authConfig = {
